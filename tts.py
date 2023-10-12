@@ -1,10 +1,9 @@
-import torch
 from scipy.io.wavfile import write
 from transformers import AutoProcessor, BarkModel
 
 _DEV = "cuda" # "cpu"
-_PROCESSOR = AutoProcessor.from_pretrained("suno/bark", torch_dtype=torch.float16)
-_MODEL = BarkModel.from_pretrained("suno/bark", torch_dtype=torch.float16).to(_DEV).to_bettertransformer()
+_PROCESSOR = AutoProcessor.from_pretrained("suno/bark")
+_MODEL = BarkModel.from_pretrained("suno/bark").to(_DEV).to_bettertransformer()
 _MODEL.enable_cpu_offload()
 
 def text_to_wav(filename, text, voice=None):
