@@ -22,7 +22,7 @@ def run_tts():
     voice = request.args.get("voice", "v2/en_speaker_6")
 
     _, fname= tempfile.mkstemp(prefix="audio-", suffix=".wav", dir="static")
-    res = tts(fname)
+    res = tts.text_to_wav(fname)
 
 
     return jsonify({
