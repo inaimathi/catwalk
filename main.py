@@ -15,11 +15,11 @@ def health():
 
 @app.post("/v0/audio/tts")
 def run_tts():
-    text = request.args.get('text')
+    text = request.values.get('text')
     if text is None:
         return jsonify({"status": "error", "message": "request must have text"}), 400
 
-    voice = request.args.get("voice", "v2/en_speaker_6")
+    voice = request.values.get("voice", "v2/en_speaker_6")
 
     _, fname= tempfile.mkstemp(prefix="audio-", suffix=".wav", dir="static")
     res = tts.text_to_wav(fname)
