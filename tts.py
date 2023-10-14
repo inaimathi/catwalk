@@ -27,10 +27,10 @@ _VOICES = {"leo": load_voices(["leo"], extra_voice_dirs=["extra-voices"])}
 #     )
 #     return filename
 
-def _save(f):
+def _save(arr, voice):
     fid, fname= tempfile.mkstemp(prefix=f"audio-{voice}-", suffix=".wav", dir="static")
     os.close(fid)
-    torchaudio.save(fname, g.squeeze(0).cpu(), 24000)
+    torchaudio.save(fname, arr.squeeze(0).cpu(), 24000)
     return fname
 
 
@@ -41,5 +41,5 @@ def text_to_wavs(text, voice=None, k=3):
     samples, latents = _VOICES[voice]
     gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
     if isinstance(gen, list):
-        return [_save(g) for g in gen]
-    return [_save(gen)]
+        return [_save(g, voice) for g in gen]
+    return [_save(gen, voice)]
