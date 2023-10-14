@@ -20,7 +20,7 @@ def run_tts():
         return jsonify({"status": "error", "message": "request must have text"}), 400
 
     voice = request.values.get("voice", "leo")
-    k = request.values.get("k", 1)
+    k = int(request.values.get("k", "1"))
 
     res = tts.text_to_wavs(text, voice=voice, k=k)
 
