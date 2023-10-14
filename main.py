@@ -28,7 +28,7 @@ def run_tts():
 
     return jsonify({
         "status": "ok", "voice": voice, "text": text,
-        "url": f"/static/{os.path.basename(res)}"
+        "urls": [f"/static/{os.path.basename(r)}" for r in res]
     })
 
 
