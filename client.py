@@ -14,8 +14,8 @@ def download(fname, url):
 def play(fname):
     subprocess.check_output(["mplayer", fname])
 
-def tts(text, voice=None):
-    data = {"text": text}
+def tts(text, voice=None, k=1):
+    data = {"text": text, "k": k}
     if voice is not None:
         data["voice"] = voice
     resp = requests.post(f"{SERVER}/v0/audio/tts", data=data)
