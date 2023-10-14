@@ -15,7 +15,10 @@ def play(fname):
     subprocess.check_output(["mplayer", fname])
 
 def tts(text, voice=None):
-    resp = requests.post(f"{SERVER}/v0/audio/tts", data={"text": text})
+    data = {"text": text}
+    if voice is not None:
+        data["voice"] = voice
+    resp = requests.post(f"{SERVER}/v0/audio/tts", data=data)
     if resp.status_code == 200:
         urls = resp.json()['urls']
         return [download(os.path.basename(url), f"{SERVER}{url}") for url in urls]
