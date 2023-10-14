@@ -1,5 +1,4 @@
 import os
-import tempfile
 
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -22,8 +21,7 @@ def run_tts():
 
     voice = request.values.get("voice", "v2/en_speaker_6")
 
-    _, fname= tempfile.mkstemp(prefix="audio-", suffix=".wav", dir="static")
-    res = tts.text_to_wav(fname, text, voice=voice)
+    res = tts.text_to_wavs(text, voice=voice)
 
 
     return jsonify({
