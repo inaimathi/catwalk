@@ -5,7 +5,7 @@ import torchaudio
 from tortoise.api import TextToSpeech
 from tortoise.utils.audio import load_voices
 
-_TTS = TextToSpeech()
+_TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
 _VOICES = {"leo": load_voices(["leo"], extra_voice_dirs=["extra-voices"])}
 
 def _save(arr, voice):
