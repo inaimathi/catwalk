@@ -7,6 +7,6 @@ transformers
 datasets
 optimum
 accelerate
-requests=2.31.0
+requests==2.31.0
 torchaudio
-pydantic=1.9.1
+pydantic==1.9.1
