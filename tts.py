@@ -27,16 +27,19 @@ _VOICES = {"leo": load_voices(["leo"], extra_voice_dirs=["extra-voices"])}
 #     )
 #     return filename
 
+def _save(f):
+    fid, fname= tempfile.mkstemp(prefix=f"audio-{voice}-", suffix=".wav", dir="static")
+    os.close(fid)
+    torchaudio.save(fname, g.squeeze(0).cpu(), 24000)
+    return fname
+
+
 def text_to_wavs(text, voice=None, k=3):
     assert (10 >= k >= 1), "k must be between 1 and 10"
     if voice is None:
         voice = "leo"
     samples, latents = _VOICES[voice]
-    gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples, conditioning_latents=latents)
-    res = []
-    for i, g in enumerate(gen):
-        fid, fname= tempfile.mkstemp(prefix=f"audio-{voice}-", suffix=".wav", dir="static")
-        os.close(fid)
-        torchaudio.save(fname, g.squeeze(0).cpu(), 24000)
-        res.append(fname)
-    return res
+    gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
+    if isinstance(gen, list):
+        return [_save(g) for g in gen]
+    return [_save(gen)]
