@@ -5,6 +5,9 @@ import requests
 
 SERVER = "http://192.168.0.16:8080"
 
+def post(endpoint, data=None, version="v0"):
+    return requests.post(f"{SERVER}/{version}/{endpoint}", data=data)
+
 def download(fname, url):
     resp = requests.get(url)
     with open(fname, 'wb') as f:
