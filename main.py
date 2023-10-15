@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, jsonify, request, send_from_directory
 
+import basics
 import tts
 
 app = Flask(__name__)
@@ -30,6 +31,25 @@ def run_tts():
         "urls": [f"/static/{os.path.basename(r)}" for r in res]
     })
 
+@app.post("/v0/text/chat")
+def run_ai_chat():
+    return jsonify({"status": "ok", "stub": "TODO"})
+
+@app.post("/v0/text/generate")
+def run_generate_text():
+    prompt = request.values.get('prompt')
+    if prompt is None:
+        return jsonify({"status": "error", "message": "request must have prompt"}), 400
+    max_new_tokens = request.values.get("max_new_tokens")
+
+    return jsonify({"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)})
+
+@app.post("/v0/image/describe")
+def run_describe():
+    url = request.values.get('url')
+    if url is None:
+        return jsonify({"status": "error", "message": "request must have url"}), 400
+    return jsonify({"status": "ok", "result": basics.caption_image(url)})
 
 @app.get("/static/<path:filename>")
 def static_file(filename=None):
