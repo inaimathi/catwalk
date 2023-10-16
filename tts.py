@@ -1,16 +1,16 @@
 import os
-import tempfile
 
 import torchaudio
 from tortoise.api import TextToSpeech
 from tortoise.utils.audio import load_voices
 
+import util
+
 _TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
 _VOICES = {"leo": load_voices(["leo"], extra_voice_dirs=["extra-voices"])}
 
 def _save(arr, voice):
-    fid, fname= tempfile.mkstemp(prefix=f"audio-{voice}-", suffix=".wav", dir="static")
-    os.close(fid)
+    fname = util.fresh_file(f"audio-{voice}-", ".wav")
     torchaudio.save(fname, arr.squeeze(0).cpu(), 24000)
     return fname
 

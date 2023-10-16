@@ -10,3 +10,4 @@ accelerate
 requests==2.31.0
 torchaudio
 pydantic==1.9.1
+openai-whisper

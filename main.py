@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 import basics
 import tts
+import util
 
 app = Flask(__name__)
 
@@ -13,6 +14,19 @@ if not os.path.exists("static"):
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
+
+@app.post("/v0/audio/transcribe")
+def run_transcribe():
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "message": "request must have a file"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status": "error", "message": "request must have a file"}), 400
+
+    path = util.fresh_file("tmp-transcription-audio-", )
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+    return jsonify({"status": "ok", "result": basics.transcribe(file)})
 
 @app.post("/v0/audio/tts")
 def run_tts():
