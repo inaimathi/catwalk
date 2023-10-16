@@ -22,11 +22,13 @@ def run_transcribe():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"status": "error", "message": "request must have a file"}), 400
+    if not os.path.splitext(file.filename)[1].lower() == ".wav":
+        return jsonify({"status": "error", "message": "file myst be a .wav"}), 400
 
-    path = util.fresh_file("tmp-transcription-audio-", )
-    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    path = util.fresh_file("tmp-transcription-audio-", os.path.splitext(file.filename))
+    file.save(path)
 
-    return jsonify({"status": "ok", "result": basics.transcribe(file)})
+    return jsonify({"status": "ok", "result": basics.transcribe(path)})
 
 @app.post("/v0/audio/tts")
 def run_tts():
