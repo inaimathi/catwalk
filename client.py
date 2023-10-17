@@ -3,7 +3,9 @@ import subprocess
 
 import requests
 
-SERVER = "http://192.168.0.16:8080"
+import util
+
+SERVER = "http://192.168.0.12:8080"
 
 def post(endpoint, data=None, version="v0"):
     return requests.post(f"{SERVER}/{version}/{endpoint}", data=data)
@@ -13,9 +15,6 @@ def download(fname, url):
     with open(fname, 'wb') as f:
         f.write(resp.content)
     return fname
-
-def play(fname):
-    subprocess.check_output(["mplayer", fname])
 
 def tts(text, voice=None, k=1):
     data = {"text": text, "k": k}
