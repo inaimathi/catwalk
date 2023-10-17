@@ -30,8 +30,14 @@ def run_transcribe():
 
     return jsonify({"status": "ok", "result": basics.transcribe(path)})
 
+@app.get("/v0/audio/tts")
+def tts_properties():
+    return jsonify({
+        "voices": tts.get_voices()
+    })
+
 @app.post("/v0/audio/tts")
-def run_tts():
+def tts_run():
     text = request.values.get('text')
     if text is None:
         return jsonify({"status": "error", "message": "request must have text"}), 400

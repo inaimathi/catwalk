@@ -12,6 +12,9 @@ _VOICES = {
     for voice in get_voices(["extra-voices"])
 }
 
+def get_voices():
+    return sorted(_VOICES.keys())
+
 def _save(arr, voice):
     fname = util.fresh_file(f"audio-{voice}-", ".wav")
     torchaudio.save(fname, arr.squeeze(0).cpu(), 24000)
