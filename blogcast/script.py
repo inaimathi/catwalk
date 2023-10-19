@@ -3,11 +3,11 @@ import os
 import re
 import urllib
 
-# from basics import caption_image
 import markdown
 import nltk.data
 import requests
 import util
+from basics import caption_image
 from bs4 import BeautifulSoup
 
 try:
@@ -15,9 +15,6 @@ try:
 except LookupError:
     nltk.download("punkt")
     _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
-
-def caption_image(src):
-    return "TODO - caption this image"
 
 def _sanitize(txt):
     return re.sub("’", "'", re.sub("[\[\]]", "", txt.strip()))
@@ -34,7 +31,7 @@ def _element_text(el):
     elif el.name == "p":
         return _flat([_element_text(c) for c in (el.children)]) + [{"silence": 0.5}]
     elif el.name in {"em", "strong", "i", "b"}:
-        return [f" **{_sanitize(el.text)}** "]
+        return [f"--{_sanitize(el.text)}--"]
     elif el.name == "a":
         return [_sanitize(el.text), " (link in post) "]
     elif el.find("img") not in {None, -1}:
@@ -54,6 +51,11 @@ def _element_text(el):
             res.append({"silence": 0.5})
         res.append({"silence": 0.5})
         return res
+    elif el.name in {"code", "pre"}:
+        if 5 >= len(el.text.split()):
+            return [_sanitize(el.text)]
+        else:
+            return ["There is a code block here."]
     elif el.name == "div" and 'image3' in el['class']:
         ## This is Substacks' stupid image representation
         dat = json.loads(el['data-attrs'])
@@ -158,7 +160,7 @@ def _merge_adjacent(script):
             if acc is None:
                 acc = el
             else:
-                acc += el
+                acc = acc.rstrip() + " " + el.lstrip()
 
 def normalize_script(script):
     merged = _merge_adjacent(script)
