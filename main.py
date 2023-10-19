@@ -62,9 +62,13 @@ def read_blog_post():
     voice = request.values.get("voice", "leo")
 
     script = blogcast.script.script_from(url)
-    res = [{"text": el,
-            "file": tts.text_to_wavs(el, voice=voice, k=1)[0]}
-           for el in script]
+    res = [
+        {
+            "text": el,
+            "file": tts.text_to_wavs(el, voice=voice, k=1)[0]
+        } if isinstance(el, str) else el
+        for el in script
+    ]
 
     return jsonify({
         "status": "ok", "voice": voice, "target": url,
