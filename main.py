@@ -3,6 +3,7 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 
 import basics
+import blogcast.script
 import tts
 import util
 
@@ -47,10 +48,27 @@ def tts_run():
 
     res = tts.text_to_wavs(text, voice=voice, k=k)
 
-
     return jsonify({
         "status": "ok", "voice": voice, "text": text,
         "urls": [f"/static/{os.path.basename(r)}" for r in res]
+    })
+
+@app.post("/v0/audio/blogcast")
+def read_blog_post():
+    url = request.values.get('url')
+    if url is None:
+        return jsonify({"status": "error", "message": "request must have a target URL"}), 400
+
+    voice = request.values.get("voice", "leo")
+
+    script = blogcast.script.script_from(url)
+    res = [{"text": el
+            "file": tts.text_to_wavs(el, voice=voice, k=1)[0]}]
+
+    return jsonify({
+        "status": "ok", "voice": voice, "target": url,
+        "script": script,
+        "result": res
     })
 
 @app.post("/v0/text/chat")
