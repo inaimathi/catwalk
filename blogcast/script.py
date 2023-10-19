@@ -10,7 +10,11 @@ import requests
 import util
 from bs4 import BeautifulSoup
 
-_TOK = nltk.data.load("tokenizers/punkt/english.pickle")
+try:
+    _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
+except LookupError:
+    nltk.download("punkt")
+    _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
 
 def caption_image(src):
     return "TODO - caption this image"
