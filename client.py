@@ -7,6 +7,9 @@ import util
 
 SERVER = "http://192.168.0.12:8080"
 
+def get(endpoint, version="v0"):
+    return requests.get(f"{SERVER}/{version}/{endpoint}")
+
 def post(endpoint, data=None, version="v0"):
     return requests.post(f"{SERVER}/{version}/{endpoint}", data=data)
 

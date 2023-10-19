@@ -11,3 +11,6 @@ requests==2.31.0
 torchaudio
 pydantic==1.9.1
 openai-whisper
+nltk==3.8.1
+beautifulsoup4==4.12.2
+Markdown==3.4.4

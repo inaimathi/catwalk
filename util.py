@@ -9,6 +9,11 @@ import tempfile
 def play(fname):
     subprocess.check_output(["mplayer", fname])
 
+def audio_info(audio_fname):
+    res = check_output(["sox", "--i", sound_fname])
+    splits = (re.split(" *: +", ln) for ln in res.decode("utf-8").splitlines() if ln)
+    return {k.lower().replace(' ', '-'): v for k, v in splits}
+
 def batched(iterable, n):
     # batched('ABCDEFG', 3) --> ABC DEF G
     if n < 1:
