@@ -32,7 +32,7 @@ def _element_text(el):
     elif el.name in {"em", "strong", "i", "b"}:
         return [f" **{_sanitize(el.text)}** "]
     elif el.name == "a":
-        return [_sanitize(el.text), " (link in post)", {"silence": 0.2}]
+        return [_sanitize(el.text), " (link in post) "]
     elif el.find("img") not in {None, -1}:
         src = el['src'] or json.loads(el.find("img")["data-attrs"])["src"]
         return ["Here we see an image of:", caption_image(src), {"silence": 0.5}]
