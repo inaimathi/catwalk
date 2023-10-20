@@ -1,6 +1,8 @@
 import os
 import subprocess
+import tempfile
 
+import jsno
 import requests
 
 import util
@@ -46,6 +48,23 @@ def tts(text, voice=None, k=1):
         urls = resp.json()['urls']
         return [download(os.path.basename(url), f"{SERVER}{url}") for url in urls]
     return resp
+
+def blogcast(url, voice=None, k=1):
+    data = {"url": url}
+    if voice is not None:
+        data["voice"] = voice
+    res = post("audio/blogcast", data=data)
+    print(res)
+    dir = tempfile.mkdtemp(prefix=os.path.basename(url))
+    with open(f"{dir}/result.json", 'w') as f:
+        json.dump(res, f)
+    for ix, el in enumerate(res.json()["result"]):
+        furl = el.get('url')
+        if furl is not None:
+            fname = os.path.basename(furl)
+            download(f"{dir}/{str(ix).zfill(6)}-{fname}", f"{SERVER}{furl}")
+    return dir
+
 
 def _llama_msg(msg):
     if msg["role"] == "user":
