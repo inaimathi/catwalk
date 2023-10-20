@@ -13,7 +13,7 @@ def transcribe(audio_file):
     _, probs = _WHISPER.detect_language(mel)
     opts = whisper.DecodingOptions()
 
-    result = whisper.decode(model, mel, opts)
+    result = whisper.decode(_WHISPER, mel, opts)
 
     return result.text
 
