@@ -29,6 +29,9 @@ def download_post(sub_dir, script):
             res.append(download(f"{sub_dir}/{fname}", f"{SERVER}/static/{fname}"))
     return res
 
+def health():
+    return request.get(f"{SERVER}/health").json()
+
 def transcribe(audio_fname):
     with open(audio_fname, 'rb') as f:
         res = post("audio/transcribe", files={"file": f})
