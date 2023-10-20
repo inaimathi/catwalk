@@ -10,6 +10,8 @@ import util
 from basics import caption_image
 from bs4 import BeautifulSoup
 
+import blogcast.horrifying_hacks as hax
+
 try:
     _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
 except LookupError:
@@ -43,6 +45,7 @@ def _element_text(el):
         ps = el.find_all("p")
         if len(ps) == 1:
             return ["Quote:", _sanitize(el.text), {"silence": 0.5}]
+        print(f"BLOCKQUOTE: {ps}")
         return ["There is a longer quote:", *[_sanitize(p.text) for p in ps], {"silence": 0.5}, "Now we resume the text.", {"silence": 0.5}]
     elif el.name in {"ul", "ol"}:
         res = []
@@ -166,7 +169,7 @@ def normalize_script(script):
     merged = _merge_adjacent(script)
     sentences = _break_paragraphs(merged)
     merged = _merge_silence(sentences)
-    return list(merged)
+    return list(hax.apply(merged))
 
 def script_from(target):
     return normalize_script(_script_from_(target))
