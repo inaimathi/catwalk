@@ -65,7 +65,7 @@ def read_blog_post():
     res = [
         {
             "text": el,
-            "file": tts.text_to_wavs(el, voice=voice, k=1)[0]
+            "url": f"/static/{os.path.basename(tts.text_to_wavs(el, voice=voice, k=1)[0])}"
         } if isinstance(el, str) else el
         for el in script
     ]
