@@ -10,14 +10,26 @@ SERVER = "http://192.168.0.12:8080"
 def get(endpoint, version="v0"):
     return requests.get(f"{SERVER}/{version}/{endpoint}")
 
-def post(endpoint, data=None, version="v0"):
-    return requests.post(f"{SERVER}/{version}/{endpoint}", data=data)
+def post(endpoint, data=None, version="v0", files=None):
+    return requests.post(f"{SERVER}/{version}/{endpoint}", data=data, files=files)
 
 def download(fname, url):
     resp = requests.get(url)
     with open(fname, 'wb') as f:
         f.write(resp.content)
     return fname
+
+def download_post(sub_dir, script):
+    if not os.path.isdir(sub_dir):
+        os.mkdir(sub_dir)
+    res = []
+    for el in script:
+        if 'file' in el:
+            fname = os.path.basename(el['file'])
+            res.append(download(f"{sub_dir}/{fname}", f"{SERVER}/static/{fname}"))
+    return res
+
+
 
 def tts(text, voice=None, k=1):
     data = {"text": text, "k": k}
