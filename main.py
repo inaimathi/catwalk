@@ -23,8 +23,12 @@ def run_transcribe():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"status": "error", "message": "request must have a file"}), 400
-    if not os.path.splitext(file.filename)[1].lower() == ".wav":
-        return jsonify({"status": "error", "message": "file myst be a .wav"}), 400
+    allowed_extensions = {".wav", ".mp3"}
+    if not os.path.splitext(file.filename)[1].lower() in allowed_extensions:
+        return jsonify({
+            "status": "error",
+            "message": f"file must be one of {', '.join(allowed_extensions)}"
+        }), 400
 
     path = util.fresh_file("tmp-transcription-audio-", os.path.splitext(file.filename))
     file.save(path)

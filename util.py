@@ -27,7 +27,7 @@ def fresh_file(prefix, suffix, dir="static"):
     os.close(fid)
     return fname
 
-def _silence_locations(audio_file, silence_duration=1, dB_threshold = -50):
+def _silence_locations(audio_file, silence_duration, dB_threshold):
     cmd = [
         "ffmpeg", "-i", audio_file, "-af",
         f"silencedetect=n={dB_threshold}dB:d={silence_duration}",
@@ -45,9 +45,9 @@ def _silence_locations(audio_file, silence_duration=1, dB_threshold = -50):
         yield start.split(": ")[1].strip()
         yield end.split(" | ")[0].split(": ")[1].strip()
 
-def split_audio_by_silence(audio_file):
+def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
     name, ext = os.path.splitext(os.path.basename(audio_file))
-    silence_locs = _silence_locations(audio_file)
+    silence_locs = _silence_locations(audio_file, silence_duration, dB_threshold)
     first_silence_start = next(silence_locs)
     subprocess.run([
         "ffmpeg", "-i", audio_file,
