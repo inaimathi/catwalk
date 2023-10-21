@@ -167,9 +167,9 @@ def _merge_adjacent(script):
 
 def normalize_script(script):
     merged = _merge_adjacent(script)
-    sentences = _break_paragraphs(merged)
-    merged = _merge_silence(sentences)
-    return [hax.apply(s) if isinstance(s, str) else s for s in merged]
+    hacked = [hax.apply(s) if isinstance(s, str) else s for s in merged]
+    sentences = _break_paragraphs(hacked)
+    return list(_merge_silence(sentences))
 
 def script_from(target):
     return normalize_script(_script_from_(target))

@@ -1,8 +1,8 @@
+import json
 import os
 import subprocess
 import tempfile
 
-import jsno
 import requests
 
 import util
