@@ -6,8 +6,12 @@ import subprocess
 import tempfile
 
 
-def play(fname):
-    subprocess.check_output(["mplayer", fname])
+def play(fname_or_list):
+    if isinstance(fname_or_list, list):
+        for el in fname_or_list:
+            subprocess.check_output(["mplayer", el])
+        return
+    subprocess.check_output(["mplayer", fname_or_list])
 
 def audio_info(audio_fname):
     res = check_output(["sox", "--i", sound_fname])

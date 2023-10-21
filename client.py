@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import subprocess
@@ -54,16 +55,15 @@ def blogcast(url, voice=None, k=1):
     if voice is not None:
         data["voice"] = voice
     res = post("audio/blogcast", data=data)
-    print(res)
-    dir = tempfile.mkdtemp(prefix=os.path.basename(url))
-    with open(f"{dir}/result.json", 'w') as f:
-        json.dump(res, f)
+    down_dir = tempfile.mkdtemp(prefix=os.path.basename(url), dir=".")
+    with open(f"{down_dir}/result.json", 'w') as f:
+        json.dump(res.json(), f)
     for ix, el in enumerate(res.json()["result"]):
         furl = el.get('url')
         if furl is not None:
             fname = os.path.basename(furl)
-            download(f"{dir}/{str(ix).zfill(6)}-{fname}", f"{SERVER}{furl}")
-    return dir
+            download(f"{down_dir}/{str(ix).zfill(6)}-{fname}", f"{SERVER}{furl}")
+    return sorted(glob.glob(f"{down_dir}/*wav"))
 
 
 def _llama_msg(msg):
