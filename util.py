@@ -13,11 +13,13 @@ import tempfile
 def silence():
     saved_out = sys.stdout
     saved_err = sys.stderr
-    sys.stdout = None
-    sys.stderr = None
+    sys.stdout = io.BytesIO()
+    sys.stderr = io.BytesIO()
     try:
         yield
     finally:
+        sys.stdout.close()
+        sys.stderr.close()
         sys.stdout = saved_out
         sys.stderr = saved_err
 
