@@ -7,6 +7,7 @@ MISPRONOUNCED_TOKENS = {
     "api": "ai pee eye",
     "gpt-4": "jee pee tee four",
     "gpt-3": "jee pee tee three",
+    "strachan": "strohn"
 }
 
 UNICODE = {
