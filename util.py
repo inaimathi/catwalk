@@ -21,12 +21,27 @@ def silence():
         sys.stdout = saved_out
         sys.stderr = saved_err
 
+@contextlib.contextmanager
+def key_interrupt():
+    try:
+        yield
+    except KeyboardInterrupt:
+        print("\nInterrupted...\n")
+
+def silent_cmd(command):
+    return subprocess.check_output(command, stderr=subprocess.DEVNULL)
+
 def play(fname_or_list):
-    if isinstance(fname_or_list, list):
-        for el in fname_or_list:
-            subprocess.check_output(["mplayer", el])
-        return
-    subprocess.check_output(["mplayer", fname_or_list])
+    with key_interrupt():
+        if isinstance(fname_or_list, list):
+            for el in fname_or_list:
+                print(el)
+                with silence():
+                    silent_cmd(["mplayer", el])
+            return fname_or_list
+        with silence():
+            silent_cmd(["mplayer", fname_or_list])
+        return fname_or_list
 
 def audio_info(audio_fname):
     res = check_output(["sox", "--i", sound_fname])
@@ -68,17 +83,17 @@ def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
     name, ext = os.path.splitext(os.path.basename(audio_file))
     silence_locs = _silence_locations(audio_file, silence_duration, dB_threshold)
     first_silence_start = next(silence_locs)
-    subprocess.run([
+    silent_cmd([
         "ffmpeg", "-i", audio_file,
         "-to", first_silence_start, "-c", "copy",
         f"{name}-part-00000{ext}"
-    ], stderr=subprocess.DEVNULL)
+    ])
     end_start_pairs = list(batched(silence_locs, 2))[:-1]
     for ix, (end, start) in enumerate(end_start_pairs):
-        subprocess.run([
+        silent_cmd([
             "ffmpeg", "-i", audio_file,
             "-ss", end, "-to", start, "-c", "copy",
             f"{name}-part-{str(ix).zfill(5)}{ext}"
-        ], stderr=subprocess.DEVNULL)
+        ])
 #        subprocess.run(["ffmpeg", "-i", audio_file, "-f", "segment", "-segment_times", ",".join(list(pairs)) , "-reset_timestamps", "1", "-map", "0:a", "-c:a", "copy", f"{name}-part-%03d{ext}"])
     return sorted(glob.glob(f"{name}-part-*{ext}"))
