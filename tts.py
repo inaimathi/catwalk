@@ -25,7 +25,8 @@ def text_to_wavs(text, voice=None, k=3):
     if voice is None:
         voice = "leo"
     samples, latents = _VOICES[voice]
-    gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
+    with util.silence():
+        gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
     if isinstance(gen, list):
         return [_save(g, voice) for g in gen]
     return [_save(gen, voice)]
