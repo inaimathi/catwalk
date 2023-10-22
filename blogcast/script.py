@@ -45,7 +45,6 @@ def _element_text(el):
         ps = el.find_all("p")
         if len(ps) == 1:
             return ["Quote:", _sanitize(el.text), {"silence": 0.5}]
-        print(f"BLOCKQUOTE: {ps}")
         return ["There is a longer quote:", *[_sanitize(p.text) for p in ps], {"silence": 0.5}, "Now we resume the text.", {"silence": 0.5}]
     elif el.name in {"ul", "ol"}:
         res = []

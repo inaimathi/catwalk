@@ -55,7 +55,7 @@ def blogcast(url, voice=None, k=1):
     if voice is not None:
         data["voice"] = voice
     res = post("audio/blogcast", data=data)
-    down_dir = tempfile.mkdtemp(prefix=os.path.basename(url), dir=".")
+    down_dir = tempfile.mkdtemp(prefix=f"{os.path.basename(url)}-", dir=".")
     with open(f"{down_dir}/result.json", 'w') as f:
         json.dump(res.json(), f)
     for ix, el in enumerate(res.json()["result"]):
