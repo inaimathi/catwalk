@@ -5,6 +5,8 @@ MISPRONOUNCED_TOKENS = {
     "tts": "tee tee ess",
     "openai": "open ai eye",
     "api": "ai pee eye",
+    "gpt-4": "jee pee tee four",
+    "gpt-3": "jee pee tee three",
 }
 
 UNICODE = {
