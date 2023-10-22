@@ -88,6 +88,9 @@ def script_from_langnostic(post_url):
 
     ## FIXME - figure out how to represent footnotes properly in audio
     footnote_container = post.find(attrs={"class": "footnotes"})
+    if footnote_container is None:
+        return script_from_soup(post)
+
     footnotes = footnote_container.findAll("li")
     footnote_count = len(footnotes)
     foot_note = f"This post had {footnote_count} notes that were ommitted from this recording for now."
