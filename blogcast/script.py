@@ -77,10 +77,6 @@ def script_from_markdown(md):
     return script_from_html(markdown.markdown(md))
 
 def script_from_substack(post_url):
-    # parsed = urllib.parse.urlparse(post_url)
-    # subdomain = parsed.netloc.split(".")[0]
-    # slug = [p for p in parsed.path.split("/") if p and p != "p"][0]
-    # url = f"https://{subdomain}.substack.com/api/v1/posts/{slug}"
     url = post_url.replace("/p/", "/api/v1/posts/")
     resp = requests.get(url).json()
     return [resp["title"], resp["subtitle"]] + script_from_html(resp["body_html"])
@@ -90,7 +86,18 @@ def script_from_langnostic(post_url):
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.find("div", attrs={"class": "content"}).find_next()
     post.find("div", attrs={"class": "post-nav"}).replaceWith('')
-    return script_from_soup(post)
+
+    ## FIXME - figure out how to represent footnotes properly in audio
+    footnote_container = post.find(attrs={"class": "footnotes"})
+    footnotes = footnote_container.findAll("li")
+    footnote_count = len(footnotes)
+    foot_note = f"This post had {footnote_count} notes that were ommitted from this recording for now."
+    for footnote in footnotes:
+        ref_id = footnote.findAll("a")[-1].get("href").lstrip("#")
+        post.find("a", {"id": ref_id}).replaceWith('')
+    footnote_container.replaceWith('')
+
+    return script_from_soup(post) + [{"silence": 0.5}, foot_note]
 
 URL_MAP = {
     "^https?://.*?\.substack": script_from_substack,
@@ -164,6 +171,9 @@ def _merge_adjacent(script):
                 acc = el
             else:
                 acc = acc.rstrip() + " " + el.lstrip()
+    if acc is not None:
+        yield acc
+        acc = None
 
 def normalize_script(script):
     merged = _merge_adjacent(script)
