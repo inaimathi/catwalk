@@ -57,7 +57,7 @@ def _element_text(el):
         if 5 >= len(el.text.split()):
             return [_sanitize(el.text)]
         else:
-            return ["Here is a code block.", {"silence": 0.5}, summarize_code(e.text)]
+            return ["Here is a code block.", {"silence": 0.5}, summarize_code(el.text)]
     elif el.name == "div" and 'image3' in el['class']:
         ## This is Substacks' stupid image representation
         dat = json.loads(el['data-attrs'])
