@@ -13,8 +13,8 @@ import tempfile
 def silence():
     saved_out = sys.stdout
     saved_err = sys.stderr
-    sys.stdout = io.BytesIO()
-    sys.stderr = io.BytesIO()
+    sys.stdout = io.StringIO()
+    sys.stderr = io.StringIO()
     try:
         yield
     finally:

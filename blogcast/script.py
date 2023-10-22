@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 import urllib
 
 import markdown
@@ -30,6 +31,13 @@ def _element_text(el):
             return []
         else:
             return [el]
+    elif 'posted' in el.get('class', []):
+        try:
+            parsed = time.strptime(el.text, "%a %b %d, %Y")
+            date = time.strftime("%A, %B %d, %Y", parsed)
+            return [f"Posted on {date}", {"silence": 0.5}]
+        except Exception:
+            return []
     elif el.name == "p":
         return _flat([_element_text(c) for c in (el.children)]) + [{"silence": 0.5}]
     elif el.name in {"em", "strong", "i", "b"}:
