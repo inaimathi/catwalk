@@ -1,3 +1,4 @@
+import openai
 import torch
 import transformers
 import whisper
@@ -25,8 +26,17 @@ _CAPTIONER = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 def caption_image(url):
     return _CAPTIONER(url)
 
-_TEXT_MODEL = "tiiuae/falcon-7b-instruct"
-_TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
+def summarize_code(code_block):
+    return openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system",
+             "content": "You are an omni-competent programmer and brilliant documentation writer. You're usually the stickler that insists on better docstrings being written when you're on a team. You know all programming languages, and have an impeccable skill for explaining code written in them to others. You will be asked to summarize a code block. Assume that this is a description that will have to be read out loud to someone familiar with the language it is written in, but not what the specific code itself does. You should tell the listener what language the code is written in, and what it does at a high level."},
+            {"role": "user",
+             "content": f"Please summarize the following code block: {code_block}"}])
+
+# _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
+# _TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
 # _PIPE = transformers.pipeline(
 #     "text-generation",
 #     model=_TEXT_MODEL,

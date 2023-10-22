@@ -7,7 +7,7 @@ import markdown
 import nltk.data
 import requests
 import util
-from basics import caption_image
+from basics import caption_image, summarize_code
 from bs4 import BeautifulSoup
 
 import blogcast.horrifying_hacks as hax
@@ -57,7 +57,7 @@ def _element_text(el):
         if 5 >= len(el.text.split()):
             return [_sanitize(el.text)]
         else:
-            return ["There is a code block here."]
+            return ["Here is a code block.", {"silence": 0.5}, summarize_code(e.text)]
     elif el.name == "div" and 'image3' in el['class']:
         ## This is Substacks' stupid image representation
         dat = json.loads(el['data-attrs'])
