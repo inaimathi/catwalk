@@ -4,7 +4,8 @@ MISPRONOUNCED_TOKENS = {
     "chatgpt": "Chat jee pee tee",
     "tts": "tee tee ess",
     "openai": "open ai eye",
-    "api": "ai pee eye",
+    "api": "eh pee eye",
+    "ai": "eh eye",
     "gpt-4": "jee pee tee four",
     "gpt-3": "jee pee tee three",
     "strachan": "strohn"
