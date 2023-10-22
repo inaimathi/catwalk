@@ -1,10 +1,25 @@
+import contextlib
 import glob
+import io
 import itertools
 import os
 import re
 import subprocess
+import sys
 import tempfile
 
+
+@contextlib.contextmanager
+def silence():
+    saved_out = sys.stdout
+    saved_err = sys.stderr
+    sys.stdout = None
+    sys.stderr = None
+    try:
+        yield
+    finally:
+        sys.stdout = saved_out
+        sys.stderr = saved_err
 
 def play(fname_or_list):
     if isinstance(fname_or_list, list):
