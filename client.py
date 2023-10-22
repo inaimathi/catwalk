@@ -57,7 +57,7 @@ def blogcast(url, voice=None, k=1):
     res = post("audio/blogcast", data=data)
     down_dir = tempfile.mkdtemp(prefix=f"{os.path.basename(url)}-", dir=".")
     with open(f"{down_dir}/result.json", 'w') as f:
-        json.dump(res.json(), f)
+        json.dump(res.json(), f, indent=2)
     for ix, el in enumerate(res.json()["result"]):
         furl = el.get('url')
         if furl is not None:

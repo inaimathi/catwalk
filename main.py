@@ -76,7 +76,6 @@ def read_blog_post():
 
     return jsonify({
         "status": "ok", "voice": voice, "target": url,
-        "script": script,
         "result": res
     })
 
