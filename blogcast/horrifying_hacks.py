@@ -9,7 +9,8 @@ MISPRONOUNCED_TOKENS = {
     "gpt-4": "jee pee tee four",
     "gpt-3": "jee pee tee three",
     "strachan": "strohn",
-    "ssh": "ess ess eh ch"
+    "ssh": "ess ess eh ch",
+    "http": "eh ch tee tee pee"
 }
 
 UNICODE = {

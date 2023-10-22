@@ -1,5 +1,6 @@
 import os
 
+import tqdm
 from flask import Flask, abort, jsonify, request, send_from_directory
 
 import basics
@@ -65,13 +66,15 @@ def read_blog_post():
 
     voice = request.values.get("voice", "leo")
 
+    app.logger.debug(f"blogcast -- reading '{url}' as '{voice}'...")
+
     script = blogcast.script.script_from(url)
     res = [
         {
             "text": el,
             "url": f"/static/{os.path.basename(tts.text_to_wavs(el, voice=voice, k=1)[0])}"
         } if isinstance(el, str) else el
-        for el in script
+        for el in tqdm.tqdm(script)
     ]
 
     return jsonify({
