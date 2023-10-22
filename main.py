@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, abort, jsonify, request, send_from_directory
 
 import basics
 import blogcast.script
@@ -103,3 +103,34 @@ def run_describe():
 @app.get("/static/<path:filename>")
 def static_file(filename=None):
     return send_from_directory("static", filename)
+
+
+########## Blacklist
+if os.path.exists("blacklist.txt"):
+    with open("blacklist.txt", 'r') as f:
+        IP_BLACKLIST = set(f.read().splitlines())
+else:
+    IP_BLACKLIST = set([])
+
+@app.route("/actuator/gateway/routes")
+@app.route("/geoserver")
+@app.route("/boaform/admin/formLogin")
+@app.route("/portal/redlion")
+@app.route("/geoserver/web")
+@app.route("/cf_scripts/scripts/ajax/ckeditor/ckeditor.js")
+@app.route("/.env")
+@app.route("/manager/html")
+@app.route("/web_shell_cmd.gch")
+def add_to_blacklist():
+    ip = request.environ.get("REMOTE_ADDR")
+    with open("blacklist.txt", 'a+') as bl:
+        bl.write(f"{ip}\n")
+    IP_BLACKLIST.add(ip)
+    return abort(403)
+
+@app.before_request
+def block_by_ip():
+    ip = request.environ.get("REMOTE_ADDR")
+    if ip in IP_BLACKLIST:
+        return abort(403)
+##############################
