@@ -41,7 +41,7 @@ def _element_text(el):
     elif el.name == "p":
         return _flat([_element_text(c) for c in (el.children)]) + [{"silence": 0.5}]
     elif el.name in {"em", "strong", "i", "b"}:
-        return [f"--{_sanitize(el.text)}--"]
+        return [_sanitize(el.text)]
     elif el.name == "a":
         return [_sanitize(el.text), " (link in post) "]
     elif el.find("img") not in {None, -1}:

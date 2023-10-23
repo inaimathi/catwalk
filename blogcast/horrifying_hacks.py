@@ -10,7 +10,8 @@ MISPRONOUNCED_TOKENS = {
     "gpt-3": "jee pee tee three",
     "strachan": "strohn",
     "ssh": "ess ess eh ch",
-    "http": "eh ch tee tee pee"
+    "http": "eh ch tee tee pee",
+    "url": "you are el"
 }
 
 UNICODE = {
