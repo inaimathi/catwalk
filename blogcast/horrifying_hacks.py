@@ -5,6 +5,7 @@ LETTER_PRONOUNCIATIONS = {
     "b": "bee",
     "c": "see",
     "d": "dee",
+    "e": "ee",
     "f": "eff",
     "g": "jee",
     "h": "ehch",
@@ -36,6 +37,7 @@ MISPRONOUNCED_TOKENS = {
     "chatgpt": "Chat jee pee tee",
     "openai": "open eh eye",
     "strachan": "strohn",
+    "emacs": "eemacs"
 }
 
 ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip" }
