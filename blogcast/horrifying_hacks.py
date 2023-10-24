@@ -7,7 +7,7 @@ LETTER_PRONOUNCIATIONS = {
     "d": "dee",
     "f": "eff",
     "g": "jee",
-    "h": "eh ch",
+    "h": "ehch",
     "i": "eye",
     "j": "jay",
     "k": "kay",
@@ -38,7 +38,7 @@ MISPRONOUNCED_TOKENS = {
     "strachan": "strohn",
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts" }
+ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip" }
 
 UNICODE = {
     "🤗": "hugging face"
