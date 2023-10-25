@@ -1,5 +1,6 @@
 ;; -*- lexical-binding:t -*-
 (require 'json)
+(require 'cl)
 (require 'request)
 
 (define-derived-mode blogcast-mode fundamental-mode "BLOGCAST"
@@ -17,6 +18,10 @@
 
 (defun bc-asc (key list)
   (cdr (assoc key list)))
+
+(defun bc-alist<-plist (plist)
+  (cl-loop for (key value . rest) on plist by 'cddr
+           collect (cons key value)))
 
 (defun blogcast-fname<-line-ix+url (line-ix url)
   (format "%06.0f-%s.%s" line-ix (file-name-base url) (file-name-extension url)))
@@ -64,49 +69,33 @@
       (split-string (buffer-string) "\n")))))
 
 (defun blogcast-to-json ()
-  ;; TODO - factor out the common stuff between this and the plists
-  (json-encode
-   (let ((counter -1))
-     (mapcar
-      (lambda (ln)
-	(cl-incf counter)
-	(if (string-match "^SILENCE" ln)
-	    `(("silence" . ,(blogcast-parse-silence ln)))
-	  ;; (list :silence (blogcast-parse-silence ln))
-	  (let* ((parsed (blogcast-parse-line ln))
-		 (url (cl-getf parsed :url))
-		 (fname (blogcast-fname<-line-ix+url counter url)))
-	    (list :url url :file fname :text (cl-getf parsed :text))
-	    `(("url" . ,url)
-	      ("file" . ,fname)
-	      ("text" . ,(cl-getf parsed :text))))))
-      (seq-filter
-       (lambda (ln) (> (length ln) 0))
-       (split-string (buffer-string) "\n"))))))
+  (json-encode (mapcar #'bc-alist<-plist (blogcast-to-plists))))
 
 (defun blogcast-open-reading (file)
   (interactive "fReading: ")
-  (let ((blogc (format "%s.blogc" (file-name-sans-extension file))))
-    (if (file-exists-p blogc)
-	(find-file blogc)
-      (let* ((full-json (json-read-file file))
-	     (result (bc-asc 'result full-json)))
-	(switch-to-buffer (format "blogcast--%s" (file-name-base (string-trim-right (file-name-parent-directory file) "/"))))
-	(cd (file-name-directory file))
-	(mapc
-	 (lambda (pair)
-	   (if (assoc 'url pair)
-	       (blogcast-insert-line t nil (bc-asc 'url pair) (bc-asc 'text pair))
-	     (progn (insert (format "SILENCE %s" (bc-asc 'silence pair)))
-		    (newline))))
-	 result)))
-    (blogcast-mode)
-    (hl-line-mode)
-    (goto-char (point-min))))
+  (if (string-match ".blogc$" file)
+      (find-file file)
+    (let ((blogc (format "%s.blogc" (file-name-sans-extension file))))
+      (if (file-exists-p blogc)
+	  (find-file blogc)
+	(let* ((full-json (json-read-file file))
+	       (result (bc-asc 'result full-json)))
+	  (switch-to-buffer (format "blogcast--%s" (file-name-base (string-trim-right (file-name-parent-directory file) "/"))))
+	  (cd (file-name-directory file))
+	  (mapc
+	   (lambda (pair)
+	     (if (assoc 'url pair)
+		 (blogcast-insert-line t nil (bc-asc 'url pair) (bc-asc 'text pair))
+	       (progn (insert (format "SILENCE %s" (bc-asc 'silence pair)))
+		      (newline))))
+	   result)))))
+  (blogcast-mode)
+  (hl-line-mode)
+  (goto-char (point-min)))
 
 (defun blogcast-play (file)
   (interactive "fAudio: ")
-  (shell-command-to-string (format "mplayer %s" file))
+  (async-shell-command (format "mplayer %s" file) nil nil)
   (let ((ln (blogcast-current-line)))
     (kill-whole-line)
     (save-excursion
@@ -155,7 +144,8 @@
      "v0/audio/tts" "POST" `(("text" . ,line-text) ("voice" . "leo") ("k" . 1))
      (cl-function
       (lambda (&key data &allow-other-keys)
-	(if (string= "ok" (bc-asc 'status data))
+	(if (and (string= "ok" (bc-asc 'status data))
+		 (eq 'blogcast-mode major-mode))
 	    (let ((url (aref (bc-asc 'urls data) 0))
 		  (text (bc-asc 'text data)))
 	      (save-excursion
@@ -214,11 +204,26 @@
   (interactive "sOutput: ")
   (blogcast-cat-script (blogcast-to-plists) (format "%s.wav" output)))
 
+(defun blogcast-previous-unsynced ()
+  (interactive)
+  (beginning-of-line)
+  (unless (re-search-backward "^\\." nil t)
+    (goto-char (point-max))
+    (re-search-backward "^\\.")))
+
+(defun blogcast-next-unsynced ()
+  (interactive)
+  (unless (re-search-forward "^\\." nil t)
+    (goto-char (point-min))
+    (re-search-forward "^\\.")))
+
 (define-key blogcast-mode-map (kbd "<return>") 'blogcast-play-current-line)
 (define-key blogcast-mode-map (kbd "C-<down>") 'forward-line)
 (define-key blogcast-mode-map (kbd "C-<up>") 'blogcast-backward-line)
 (define-key blogcast-mode-map (kbd "C-c <return>") 'blogcast-re-record-current-line)
 (define-key blogcast-mode-map (kbd "C-<tab>") 'blogcast-edit-line)
 (define-key blogcast-mode-map (kbd "C-c C-s") 'blogcast-save-cast)
+(define-key blogcast-mode-map (kbd "C-p") 'blogcast-previous-unsynced)
+(define-key blogcast-mode-map (kbd "C-n") 'blogcast-next-unsynced)
 
 (provide 'blogcast-mode)
