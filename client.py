@@ -33,7 +33,7 @@ def download_post(sub_dir, script):
     return res
 
 def health():
-    return request.get(f"{SERVER}/health").json()
+    return requests.get(f"{SERVER}/health").json()
 
 def transcribe(audio_fname):
     with open(audio_fname, 'rb') as f:

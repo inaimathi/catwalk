@@ -93,9 +93,15 @@
   (hl-line-mode)
   (goto-char (point-min)))
 
+(defvar *blogcast-play-proc* nil)
+
 (defun blogcast-play (file)
   (interactive "fAudio: ")
-  (async-shell-command (format "mplayer %s" file) nil nil)
+  (when *blogcast-play-proc*
+    (delete-process *blogcast-play-proc*)
+    (setq *blogcast-play-proc* nil))
+  (setq *blogcast-play-proc*
+	(start-process "mplayer" nil "mplayer" file))
   (let ((ln (blogcast-current-line)))
     (kill-whole-line)
     (save-excursion
@@ -134,7 +140,8 @@
 
 (defun blogcast-re-record-current-line ()
   (interactive)
-  (let* ((ln-number (line-number-at-pos))
+  (let* ((buf (current-buffer))
+	 (ln-number (line-number-at-pos))
 	 (ln (blogcast-current-line))
 	 (line-text (cl-getf ln :text)))
     (save-excursion
@@ -144,16 +151,15 @@
      "v0/audio/tts" "POST" `(("text" . ,line-text) ("voice" . "leo") ("k" . 1))
      (cl-function
       (lambda (&key data &allow-other-keys)
-	(if (and (string= "ok" (bc-asc 'status data))
-		 (eq 'blogcast-mode major-mode))
-	    (let ((url (aref (bc-asc 'urls data) 0))
-		  (text (bc-asc 'text data)))
-	      (save-excursion
-		(goto-line ln-number)
-		(blogcast-download-file ln-number url)
-		(kill-whole-line)
-		(blogcast-insert-line t nil url text))
-	      (message (format "RECEIVED FILE: %s" url)))
+	(if (and (string= "ok" (bc-asc 'status data)))
+	    (let ((url (aref (bc-asc 'urls data) 0)))
+	      (with-current-buffer buf
+		(save-excursion
+		  (goto-line ln-number)
+		  (blogcast-download-file ln-number url)
+		  (kill-whole-line)
+		  (blogcast-insert-line t nil url (bc-asc 'text data)))
+		(message (format "RECEIVED FILE: %s" url))))
 	  (message (format "RE-RECORD FAILED: %s" data))))))))
 
 (defun blogcast-edit-line ()
@@ -217,12 +223,27 @@
     (goto-char (point-min))
     (re-search-forward "^\\.")))
 
+(defun blogcast-previous-unplayed ()
+  (interactive)
+  (beginning-of-line)
+  (unless (re-search-backward "^.\\." nil t)
+    (goto-char (point-max))
+    (re-search-backward "^.\\.")))
+
+(defun blogcast-next-unplayed ()
+  (interactive)
+  (unless (re-search-forward "^.\\." nil t)
+    (goto-char (point-min))
+    (re-search-forward "^.\\.")))
+
 (define-key blogcast-mode-map (kbd "<return>") 'blogcast-play-current-line)
 (define-key blogcast-mode-map (kbd "C-<down>") 'forward-line)
 (define-key blogcast-mode-map (kbd "C-<up>") 'blogcast-backward-line)
 (define-key blogcast-mode-map (kbd "C-c <return>") 'blogcast-re-record-current-line)
 (define-key blogcast-mode-map (kbd "C-<tab>") 'blogcast-edit-line)
 (define-key blogcast-mode-map (kbd "C-c C-s") 'blogcast-save-cast)
+(define-key blogcast-mode-map (kbd "C-M-p") 'blogcast-previous-unplayed)
+(define-key blogcast-mode-map (kbd "C-M-n") 'blogcast-previous-unplayed)
 (define-key blogcast-mode-map (kbd "C-p") 'blogcast-previous-unsynced)
 (define-key blogcast-mode-map (kbd "C-n") 'blogcast-next-unsynced)
 
