@@ -155,8 +155,9 @@ class BlogcastHandler(JSONHandler):
 class StaticHandler(tornado.web.StaticFileHandler):
     def parse_url_path(self, url_path):
         print(f"Parsing URL path {url_path}...")
-        stripped = [s for s in re.sub("[~\.]", '', url_path).split("/") if s]
-        sanitized = "/".join(stripped)
+        path, ext = os.path.splitext(url_path)
+        stripped = [s for s in re.sub("[~\.]", '', path).split("/") if s]
+        sanitized = "/".join(stripped) + ext
         print(f"  -> {sanitized}")
         return sanitized
 
@@ -169,11 +170,15 @@ ROUTES = [
 ]
 
 async def main(port):
+    print("Setting up app...")
     app = tornado.web.Application(
         ROUTES
         # default_handler=TrapCard
     )
+    print(f"  listening on {port}...")
     app.listen(port)
+
+    print(f"  running...")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
