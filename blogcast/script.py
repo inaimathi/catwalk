@@ -57,7 +57,7 @@ def _element_text(el):
     elif el.find("img") not in {None, -1}:
         src = el['src'] or json.loads(el.find("img")["data-attrs"])["src"]
         return ["Here we see an image of:", caption_image(src), {"silence": 0.5}]
-    elif el.name in {"h1", "h2", "h3"}:
+    elif el.name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
         return [_sanitize(el.text), {"silence": 1.0}]
     elif el.name == "blockquote":
         ps = el.find_all("p")
