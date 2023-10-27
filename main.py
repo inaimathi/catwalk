@@ -5,13 +5,10 @@ import os
 import tornado
 import tqdm
 
-# import basics
-# import blogcast.script
-# import tts
+import basics
+import blogcast.script
+import tts
 import util
-
-# from flask import Flask, abort, jsonify, request, send_from_directory
-
 
 if not os.path.exists("static"):
     os.makedirs("static")
