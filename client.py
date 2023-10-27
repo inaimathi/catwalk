@@ -65,25 +65,11 @@ def blogcast(url, voice=None, k=1):
             download(f"{down_dir}/{str(ix).zfill(6)}-{fname}", f"{SERVER}{furl}")
     return sorted(glob.glob(f"{down_dir}/*wav"))
 
+def multi_blogcast(urls, voice=None, dest_list=None):
+    for url in urls:
+        print(f"Casting {url}...")
+        res = blogcast(url, voice=voice)
+        if dest_list is not None:
+            dest_list.append(res)
 
-def _llama_msg(msg):
-    if msg["role"] == "user":
-        return f"[INST]{msg['content']}[/INST]"
-    else:
-        return msg['content']
-
-def _llama_chat(messages):
-    if isinstance(messages, str):
-        return messages
-    return "\n".join(_llama_msg(m) for m in messages)
-
-
-def llama(prompt, target="http://192.168.0.16:5000"):
-    resp = requests.post(
-        f"{target}/predictions",
-        headers={"Content-Type": "application/json"},
-        data=json.dumps({"input": {"prompt": _llama_chat(prompt), "max_new_tokens": "1800"}})
-    )
-    if resp.status_code == 200:
-        return "".join(resp.json()["output"]).strip()
-    return resp
+["https://inaimathi.ca/posts/another-fresh-machine", "https://inaimathi.ca/posts/hax", "https://inaimathi.ca/posts/sir-this-is-a-wendys", "https://inaimathi.ca/posts/guess-what", "https://inaimathi.ca/posts/ai-development-assistant-quickie", "https://inaimathi.ca/posts/quickie-formatting-test", "https://inaimathi.ca/posts/turing-test"]

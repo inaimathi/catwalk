@@ -19,8 +19,18 @@ except LookupError:
     nltk.download("punkt")
     _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
 
+def _subs(sub_map, string):
+    res = string
+    for pattern, replacement in sub_map.items():
+        res = re.sub(pattern, replacement, res)
+    return res
+
 def _sanitize(txt):
-    return re.sub("’", "'", re.sub("[\[\]]", "", txt.strip()))
+    return _subs({
+        "’": "'",
+        "[\[\]]": "",
+        "-": " "
+    }, txt.strip())
 
 def _flat(list_of_lists):
     return [leaf for child in list_of_lists for leaf in child]
