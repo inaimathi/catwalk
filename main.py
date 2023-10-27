@@ -164,7 +164,7 @@ async def main(port):
     print("Setting up app...")
     app = tornado.web.Application(
         ROUTES
-        default_handler=TrapCard
+        # default_handler=TrapCard
     )
     print(f"  listening on {port}...")
     app.listen(port)
