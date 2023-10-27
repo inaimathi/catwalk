@@ -15,32 +15,12 @@ if not os.path.exists("static"):
 
 GPU = asyncio.Semaphore(1) # TODO replace with asyncio.Semaphore(some_number) once I get a better GPU :p
 
-########## Blacklist
 if os.path.exists("))blacklist.txt"):
     with open("blacklist.txt", 'r') as f:
         IP_BLACKLIST = set(f.read().splitlines())
 else:
     IP_BLACKLIST = set([])
 
-class TrapCard(JSONHandler):
-    def prepare(self):
-        with open("blacklist.txt", 'a+') as bl:
-            bl.write(f"{ip}\n")
-        IP_BLACKLIST.add(ip)
-        self.set_status(500)
-        self.json({"status": "fuck you"})
-        return
-
-# @app.route("/actuator/gateway/routes")
-# @app.route("/geoserver")
-# @app.route("/boaform/admin/formLogin")
-# @app.route("/portal/redlion")
-# @app.route("/geoserver/web")
-# @app.route("/cf_scripts/scripts/ajax/ckeditor/ckeditor.js")
-# @app.route("/.env")
-# @app.route("/manager/html")
-# @app.route("/web_shell_cmd.gch")
-##############################
 
 class JSONHandler(tornado.web.RequestHandler):
     def prepare(self):
@@ -53,6 +33,15 @@ class JSONHandler(tornado.web.RequestHandler):
 
     def json(self, data):
         self.write(json.dumps(data))
+
+class TrapCard(JSONHandler):
+    def prepare(self):
+        with open("blacklist.txt", 'a+') as bl:
+            bl.write(f"{ip}\n")
+        IP_BLACKLIST.add(ip)
+        self.set_status(500)
+        self.json({"status": "fuck you"})
+        return
 
 
 class HealthHandler(JSONHandler):
