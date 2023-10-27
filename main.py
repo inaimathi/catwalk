@@ -169,11 +169,11 @@ class StaticHandler(tornado.web.StaticFileHandler):
         return url_path
 
 ROUTES = [
-    (r"/v0/health", HealthHandler)
+    (r"/v0/health", HealthHandler),
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
-    (r"/static/(.*)", StaticHandler, {"path": os.getcwd()})
+    (r"/static/(.*)", StaticHandler, {"path": os.getcwd()}),
     (r"(.*)", TrapCard)
 ]
 
