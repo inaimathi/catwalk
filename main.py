@@ -152,21 +152,21 @@ class BlogcastHandler(JSONHandler):
 #     return jsonify({"status": "ok", "result": basics.caption_image(url)})
 
 
-class StaticHandler(tornado.web.StaticFileHandler):
-    def parse_url_path(self, url_path):
-        print(f"Parsing URL path {url_path}...")
-        path, ext = os.path.splitext(url_path)
-        stripped = [s for s in re.sub("[~\.]", '', path).split("/") if s]
-        sanitized = "/".join(stripped) + ext
-        print(f"  -> {sanitized}")
-        return sanitized
+# class StaticHandler(tornado.web.StaticFileHandler):
+#     def parse_url_path(self, url_path):
+#         print(f"Parsing URL path {url_path}...")
+#         path, ext = os.path.splitext(url_path)
+#         stripped = [s for s in re.sub("[~\.]", '', path).split("/") if s]
+#         sanitized = "/".join(stripped) + ext
+#         print(f"  -> {sanitized}")
+#         return sanitized
 
 ROUTES = [
     (r"/v0/health", HealthHandler),
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
-    (r"/static/(.*)", StaticHandler, {"path": f"os.getcwd()/static"})
+    (r"/static/(.*)", StaticHandler, {"path": f"{os.getcwd()}/static"})
 ]
 
 async def main(port):
