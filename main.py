@@ -14,7 +14,7 @@ import util
 if not os.path.exists("static"):
     os.makedirs("static")
 
-GPU = asyncio.Semaphore(1) # TODO replace with asyncio.Semaphore(some_number) once I get a better GPU :p
+GPU = asyncio.Semaphore(1)
 
 if os.path.exists("))blacklist.txt"):
     with open("blacklist.txt", 'r') as f:
@@ -152,15 +152,6 @@ class BlogcastHandler(JSONHandler):
 #     return jsonify({"status": "ok", "result": basics.caption_image(url)})
 
 
-# class StaticHandler(tornado.web.StaticFileHandler):
-#     def parse_url_path(self, url_path):
-#         print(f"Parsing URL path {url_path}...")
-#         path, ext = os.path.splitext(url_path)
-#         stripped = [s for s in re.sub("[~\.]", '', path).split("/") if s]
-#         sanitized = "/".join(stripped) + ext
-#         print(f"  -> {sanitized}")
-#         return sanitized
-
 ROUTES = [
     (r"/v0/health", HealthHandler),
     (r"/v0/audio/tts", TTSHandler),
@@ -173,7 +164,7 @@ async def main(port):
     print("Setting up app...")
     app = tornado.web.Application(
         ROUTES
-        # default_handler=TrapCard
+        default_handler=TrapCard
     )
     print(f"  listening on {port}...")
     app.listen(port)
