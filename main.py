@@ -166,7 +166,7 @@ ROUTES = [
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
-    (r"/static/(.*)", StaticHandler, {"path": f"{os.getcwd()}/static"})
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": f"{os.getcwd()}/static"})
 ]
 
 async def main(port):
