@@ -14,7 +14,7 @@ app = Flask(__name__)
 if not os.path.exists("static"):
     os.makedirs("static")
 
-GPU = asyncio.Lock()
+GPU = asyncio.Lock() # TODO replace with asyncio.Semaphore(some_number) once I get a better GPU :p
 
 @app.route("/health")
 def health():
@@ -93,7 +93,7 @@ def run_ai_chat():
     return jsonify({"status": "ok", "stub": "TODO"})
 
 @app.post("/v0/text/generate")
-def run_generate_text():
+async def run_generate_text():
     prompt = request.values.get('prompt')
     if prompt is None:
         return jsonify({"status": "error", "message": "request must have prompt"}), 400
