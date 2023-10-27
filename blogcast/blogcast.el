@@ -70,6 +70,11 @@
 (defun blogcast-to-json ()
   (json-encode (mapcar #'bc-alist<-plist (blogcast-to-plists))))
 
+(defun blogcast-write ()
+  (write-file "result.blogc")
+  (blogcast-mode)
+  (hl-line-mode))
+
 (defun blogcast-open-reading (file)
   (interactive "fReading: ")
   (if (string-match ".blogc$" file)
@@ -90,9 +95,7 @@
 	       (progn (insert (format "SILENCE %s" (bc-asc 'silence pair)))
 		      (newline))))
 	   result)))))
-  (write-file "result.blogc")
-  (blogcast-mode)
-  (hl-line-mode)
+  (blogcast-write)
   (goto-char (point-min)))
 
 (defvar *blogcast-play-proc* nil)
@@ -108,7 +111,7 @@
     (kill-whole-line)
     (save-excursion
       (blogcast-insert-line (cl-getf ln :updated) t (cl-getf ln :url) (cl-getf ln :voice) (cl-getf ln :text))
-      (write-file "result.blogc")))
+      (blogcast-write)))
   nil)
 
 (defun blogcast-play-current-line ()
@@ -138,7 +141,7 @@
 
 (defun blogcast-download-file (ln-number url)
   (let ((fname (blogcast-fname<-line-ix+url (- ln-number 1) url)))
-    (shell-command (format "wget -O %s %s%s" fname blogcast-server url))
+    (async-shell-command (format "wget -O %s %s%s" fname blogcast-server url))
     fname))
 
 (defun blogcast-re-record-current-line ()
@@ -150,8 +153,8 @@
 	 (line-text (cl-getf ln :text)))
     (save-excursion
       (kill-whole-line)
-      (blogcast-insert-line nil nil (cl-getf ln :url) line-voice line-text))
-    (write-file "result.blogc")
+      (blogcast-insert-line nil nil (cl-getf ln :url) line-voice line-text)
+      (blogcast-write))
     (blogcast-request
      "v0/audio/tts" "POST" `(("text" . ,line-text) ("voice" . ,line-voice) ("k" . 1))
      (cl-function
@@ -173,7 +176,7 @@
     (save-excursion
       (kill-whole-line)
       (blogcast-insert-line nil (cl-getf ln :played) (cl-getf ln :url) (cl-getf ln :voice) (cl-getf ln :text))
-      (write-file "result.blogc"))
+      (blogcast-write))
     (beginning-of-line)
     (search-forward bc-sep)
     (search-forward bc-sep)
@@ -251,7 +254,7 @@
 (define-key blogcast-mode-map (kbd "C-<tab>") 'blogcast-edit-line)
 (define-key blogcast-mode-map (kbd "C-c C-s") 'blogcast-save-cast)
 (define-key blogcast-mode-map (kbd "C-M-p") 'blogcast-previous-unplayed)
-(define-key blogcast-mode-map (kbd "C-M-n") 'blogcast-previous-unplayed)
+(define-key blogcast-mode-map (kbd "C-M-n") 'blogcast-next-unplayed)
 (define-key blogcast-mode-map (kbd "C-p") 'blogcast-previous-unsynced)
 (define-key blogcast-mode-map (kbd "C-n") 'blogcast-next-unsynced)
 
