@@ -154,9 +154,9 @@ class BlogcastHandler(JSONHandler):
 class StaticHandler(tornado.web.StaticFileHandler):
     def parse_url_path(self, url_path):
         print(f"Parsing URL path {url_path}...")
-        if not url_path or url_path.endswith('/'):
-            url_path = url_path + 'index.html'
-        return url_path
+        stripped = [s for s in re.sub("[~\.]", '', url_path).split("/") if s]
+        sanitized = "/".join(["static" *stripped])
+        return sanitized
 
 ROUTES = [
     (r"/v0/health", HealthHandler),
