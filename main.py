@@ -40,8 +40,8 @@ class TrapCard(JSONHandler):
         with open("blacklist.txt", 'a+') as bl:
             bl.write(f"{self.request.remote_ip}\n")
         IP_BLACKLIST.add(ip)
-        self.set_status(500)
-        self.json({"status": "looks like you're going to the shadow realm, jimbo"})
+        self.set_status(400)
+        self.json({"status": "looks like you're going to the shadow realm, Jimbo"})
         return
 
 
@@ -129,27 +129,33 @@ class BlogcastHandler(JSONHandler):
             "result": res
         })
 
-# @app.post("/v0/text/chat")
-# class ChatHandler(JSONHandler):
-#     def get():
-#         return jsonify({"status": "ok", "stub": "TODO"})
 
-# @app.post("/v0/text/generate")
-# async def run_generate_text():
-#     prompt = request.values.get('prompt')
-#     if prompt is None:
-#         return jsonify({"status": "error", "message": "request must have prompt"}), 400
-#     max_new_tokens = request.values.get("max_new_tokens")
+class ChatHandler(JSONHandler):
+    def post():
+        return self.json({"status": "ok", "stub": "TODO"})
 
-#     async with GPU:
-#         return jsonify({"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)})
+class TextCompletionHandler(JSONHandler):
+    async def post():
+        prompt = self.get_argument("prompt")
+        if prompt is None:
+            self.set_status(400)
+            return self.json({"status": "error", "message": "request must have prompt"})
 
-# @app.post("/v0/image/describe")
-# def run_describe():
-#     url = request.values.get('url')
-#     if url is None:
-#         return jsonify({"status": "error", "message": "request must have url"}), 400
-#     return jsonify({"status": "ok", "result": basics.caption_image(url)})
+        max_new_tokens = self.get_argument("max_new_tokens")
+
+        async with GPU:
+            return self.json({"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)})
+
+@app.post("/v0/image/describe")
+class DescribeImageHandler(JSONHandler):
+    async def post():
+        url = self.get_argument("url")
+        if url is None:
+            self.set_status(400)
+            self.json({"status": "error", "message": "request must have url"})
+
+        async with GPU:
+            return self.json({"status": "ok", "result": basics.caption_image(url)})
 
 
 ROUTES = [
@@ -157,14 +163,17 @@ ROUTES = [
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
+    (r"/v0/text/chat", TranscribeHandler),
+    (r"/v0/text/generate", TextCompletionHandler),
+    (r"/v0/image/describe", DescribeImageHandler),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": f"{os.getcwd()}/static"})
 ]
 
 async def main(port):
     print("Setting up app...")
     app = tornado.web.Application(
-        ROUTES
-        # default_handler=TrapCard
+        ROUTES,
+        default_handler=TrapCard
     )
     print(f"  listening on {port}...")
     app.listen(port)
