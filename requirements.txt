@@ -1,4 +1,4 @@
-Flask==3.0.0
+flask[async]==3.0.0
 scipy
 torch
 numpy
