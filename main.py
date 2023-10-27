@@ -84,13 +84,13 @@ class TTSHandler(JSONHandler):
         })
 
     async def post(self):
-        text = self.request.get_argument('text')
+        text = self.get_argument('text')
         if text is None:
             self.set_status(400)
             return self.json({"status": "error", "message": "request must have text"})
 
-        voice = self.request.get_argument("voice", "leo")
-        k = int(self.request.get_argument("k", "1"))
+        voice = self.get_argument("voice", "leo")
+        k = int(self.get_argument("k", "1"))
 
         async with GPU:
             res = tts.text_to_wavs(text, voice, k)
@@ -103,12 +103,12 @@ class TTSHandler(JSONHandler):
 
 class BlogcastHandler(JSONHandler):
     async def post():
-        url = self.request.get_argument('url')
+        url = self.get_argument('url')
         if url is None:
             self.set_status(400)
             return self.json({"status": "error", "message": "request must have a target URL"})
 
-        voice = self.request.get_argument("voice", "leo")
+        voice = self.get_argument("voice", "leo")
 
         app.logger.debug(f"blogcast -- reading '{url}' as '{voice}'...")
 

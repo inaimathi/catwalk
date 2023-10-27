@@ -71,5 +71,3 @@ def multi_blogcast(urls, voice=None, dest_list=None):
         res = blogcast(url, voice=voice)
         if dest_list is not None:
             dest_list.append(res)
-
-["https://inaimathi.ca/posts/another-fresh-machine", "https://inaimathi.ca/posts/hax", "https://inaimathi.ca/posts/sir-this-is-a-wendys", "https://inaimathi.ca/posts/guess-what", "https://inaimathi.ca/posts/ai-development-assistant-quickie", "https://inaimathi.ca/posts/quickie-formatting-test", "https://inaimathi.ca/posts/turing-test"]
