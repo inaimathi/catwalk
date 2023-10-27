@@ -37,10 +37,10 @@ class JSONHandler(tornado.web.RequestHandler):
 class TrapCard(JSONHandler):
     def prepare(self):
         with open("blacklist.txt", 'a+') as bl:
-            bl.write(f"{ip}\n")
+            bl.write(f"{self.request.remote_ip}\n")
         IP_BLACKLIST.add(ip)
         self.set_status(500)
-        self.json({"status": "fuck you"})
+        self.json({"status": "looks like you're going to the shadow realm, jimbo"})
         return
 
 
@@ -153,6 +153,7 @@ class BlogcastHandler(JSONHandler):
 
 class StaticHandler(tornado.web.StaticFileHandler):
     def parse_url_path(self, url_path):
+        print(f"Parsing URL path {url_path}...")
         if not url_path or url_path.endswith('/'):
             url_path = url_path + 'index.html'
         return url_path
@@ -162,12 +163,14 @@ ROUTES = [
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
-    (r"/static/(.*)", StaticHandler, {"path": os.getcwd()}),
-    (r"(.*)", TrapCard)
+    (r"/static/(.*)", StaticHandler, {"path": os.getcwd()})
 ]
 
 async def main(port):
-    app = tornado.web.Application(ROUTES)
+    app = tornado.web.Application(
+        ROUTES
+        # default_handler=TrapCard
+    )
     app.listen(port)
     await asyncio.Event().wait()
 
