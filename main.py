@@ -156,7 +156,7 @@ class StaticHandler(tornado.web.StaticFileHandler):
     def parse_url_path(self, url_path):
         print(f"Parsing URL path {url_path}...")
         stripped = [s for s in re.sub("[~\.]", '', url_path).split("/") if s]
-        sanitized = "/".join(["static" *stripped])
+        sanitized = "/".join(["static", *stripped])
         return sanitized
 
 ROUTES = [
