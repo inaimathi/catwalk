@@ -121,12 +121,15 @@ class BlogcastHandler(JSONHandler):
 
         res = []
         for el in tqdm.tqdm(script):
-            async with GPU:
-                res_tts = tts.text_to_wavs(text, voice, k)
-            res.append({
-                "text": el,
-                "url": f"/static/{os.path.basename(res_tts[0])}"
-            })
+            if isinstance(el, str):
+                async with GPU:
+                    res_tts = tts.text_to_wavs(el, voice, k)
+                res.append({
+                    "text": el,
+                    "url": f"/static/{os.path.basename(res_tts[0])}"
+                })
+            else:
+                res.append(el)
 
         self.json({
             "status": "ok", "voice": voice, "target": url,
