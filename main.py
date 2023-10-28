@@ -123,7 +123,7 @@ class BlogcastHandler(JSONHandler):
         for el in tqdm.tqdm(script):
             if isinstance(el, str):
                 async with GPU:
-                    res_tts = tts.text_to_wavs(el, voice, k)
+                    res_tts = tts.text_to_wavs(el, voice, 1)
                 res.append({
                     "text": el,
                     "url": f"/static/{os.path.basename(res_tts[0])}"
