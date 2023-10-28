@@ -116,8 +116,6 @@ class BlogcastHandler(JSONHandler):
 
         voice = self.get_argument("voice", "leo")
 
-        app.logger.debug(f"blogcast -- reading '{url}' as '{voice}'...")
-
         async with GPU:
             script = blogcast.script.script_from(url)
 
