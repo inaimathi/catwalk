@@ -28,7 +28,7 @@ def _subs(sub_map, string):
 def _sanitize(txt):
     return _subs({
         "’": "'",
-        "[\[\]]": "",
+        "[\[\]`]": "",
         "-": " "
     }, txt.strip())
 

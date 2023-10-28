@@ -2,6 +2,8 @@ import asyncio
 import json
 import os
 import re
+import subprocess
+import threading
 
 import tornado
 import tqdm
@@ -22,7 +24,14 @@ if os.path.exists("))blacklist.txt"):
 else:
     IP_BLACKLIST = set([])
 
+def _BAN(ip):
+    print(f"BANNING {ip}...")
+    with open("blacklist.txt", 'a+') as bl:
+        bl.write(f"{ip}\n")
+    IP_BLACKLIST.add(ip)
+
 class JSONHandler(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = tornado.web.RequestHandler.SUPPORTED_METHODS + ('CONNECT',)
     def prepare(self):
         if self.request.remote_ip in IP_BLACKLIST:
             self.status(403, "Forbidden")
@@ -31,18 +40,19 @@ class JSONHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
 
-    def json(self, data):
+    def connect(self):
+        _BAN(self.request.remote_ip)
+        self.json({"status": "looks like you're going to the shadow realm, Jimbo"}, 400)
+
+    def json(self, data, status=None):
+        if status is not None:
+            self.set_status(status)
         self.write(json.dumps(data))
 
 class TrapCard(JSONHandler):
     def prepare(self):
-        ip = self.request.remote_ip
-        print(f"BANNING {ip}...")
-        with open("blacklist.txt", 'a+') as bl:
-            bl.write(f"{ip}\n")
-        IP_BLACKLIST.add(ip)
-        self.set_status(400)
-        self.json({"status": "looks like you're going to the shadow realm, Jimbo"})
+        _BAN(self.request.remote_ip)
+        self.json({"status": "looks like you're going to the shadow realm, Jimbo"}, 400)
         return
 
 
@@ -57,19 +67,16 @@ class HealthHandler(JSONHandler):
 class TranscribeHandler(JSONHandler):
     async def post(self):
         if 'file' not in request.files:
-            self.set_status(400)
-            return self.json({"status": "error", "message": "request must have a file"})
+            return self.json({"status": "error", "message": "request must have a file"}, 400)
         file = self.request.files['file'][0]
         if file['filename'] == '':
-            self.set_status(400)
-            return self.json({"status": "error", "message": "request must have a file"})
+            return self.json({"status": "error", "message": "request must have a file"}, 400)
         allowed_extensions = {".wav", ".mp3"}
         if not os.path.splitext(file['filename'])[1].lower() in allowed_extensions:
-            self.set_status(400)
             return self.json({
                 "status": "error",
                 "message": f"file must be one of {', '.join(allowed_extensions)}"
-            })
+            }, 400)
 
         with open(util.fresh_file("tmp-transcription-audio-", os.path.splitext(file.filename)), 'wb') as out:
             out.write(file['body'])
@@ -87,8 +94,7 @@ class TTSHandler(JSONHandler):
     async def post(self):
         text = self.get_argument('text')
         if text is None:
-            self.set_status(400)
-            return self.json({"status": "error", "message": "request must have text"})
+            return self.json({"status": "error", "message": "request must have text"}, 400)
 
         voice = self.get_argument("voice", "leo")
         k = int(self.get_argument("k", "1"))
@@ -103,11 +109,10 @@ class TTSHandler(JSONHandler):
 
 
 class BlogcastHandler(JSONHandler):
-    async def post():
+    async def post(self):
         url = self.get_argument('url')
         if url is None:
-            self.set_status(400)
-            return self.json({"status": "error", "message": "request must have a target URL"})
+            return self.json({"status": "error", "message": "request must have a target URL"}, 400)
 
         voice = self.get_argument("voice", "leo")
 
@@ -139,8 +144,7 @@ class TextCompletionHandler(JSONHandler):
     async def post():
         prompt = self.get_argument("prompt")
         if prompt is None:
-            self.set_status(400)
-            return self.json({"status": "error", "message": "request must have prompt"})
+            return self.json({"status": "error", "message": "request must have prompt"}, 400)
 
         max_new_tokens = self.get_argument("max_new_tokens")
 
@@ -151,8 +155,7 @@ class DescribeImageHandler(JSONHandler):
     async def post():
         url = self.get_argument("url")
         if url is None:
-            self.set_status(400)
-            self.json({"status": "error", "message": "request must have url"})
+            self.json({"status": "error", "message": "request must have url"}, 400)
 
         async with GPU:
             return self.json({"status": "ok", "result": basics.caption_image(url)})
@@ -169,15 +172,23 @@ ROUTES = [
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": f"{os.getcwd()}/static"})
 ]
 
-async def main(port):
+def serve_static(port):
+    print(f"Serving static directory on {port}...")
+    subprocess.run(["python", "-m", "http.server", "-d", "static", port])
+
+THREAD = None
+
+async def main(port, static_port):
     print("Setting up app...")
     app = tornado.web.Application(
         ROUTES,
         default_handler_class=TrapCard
     )
+    # THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
+    # THREAD.start()
     print(f"  listening on {port}...")
     app.listen(port)
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main(8080))
+    asyncio.run(main(8080, 8081))
