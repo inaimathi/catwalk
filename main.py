@@ -22,7 +22,6 @@ if os.path.exists("))blacklist.txt"):
 else:
     IP_BLACKLIST = set([])
 
-
 class JSONHandler(tornado.web.RequestHandler):
     def prepare(self):
         if self.request.remote_ip in IP_BLACKLIST:
@@ -174,7 +173,7 @@ async def main(port):
     print("Setting up app...")
     app = tornado.web.Application(
         ROUTES,
-        default_handler=TrapCard
+        default_handler_class=TrapCard
     )
     print(f"  listening on {port}...")
     app.listen(port)
