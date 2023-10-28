@@ -176,8 +176,6 @@ async def main(port):
     )
     print(f"  listening on {port}...")
     app.listen(port)
-
-    print(f"  running...")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
