@@ -146,7 +146,6 @@ class TextCompletionHandler(JSONHandler):
         async with GPU:
             return self.json({"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)})
 
-@app.post("/v0/image/describe")
 class DescribeImageHandler(JSONHandler):
     async def post():
         url = self.get_argument("url")
