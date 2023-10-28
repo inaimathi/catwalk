@@ -37,8 +37,10 @@ class JSONHandler(tornado.web.RequestHandler):
 
 class TrapCard(JSONHandler):
     def prepare(self):
+        ip = self.request.remote_ip
+        print(f"BANNING {ip}...")
         with open("blacklist.txt", 'a+') as bl:
-            bl.write(f"{self.request.remote_ip}\n")
+            bl.write(f"{ip}\n")
         IP_BLACKLIST.add(ip)
         self.set_status(400)
         self.json({"status": "looks like you're going to the shadow realm, Jimbo"})

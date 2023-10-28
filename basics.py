@@ -19,7 +19,6 @@ def transcribe(audio_file):
     return result.text
 
 
-
 #_CAPTIONER = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
 _CAPTIONER = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 
