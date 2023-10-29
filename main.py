@@ -34,8 +34,7 @@ class JSONHandler(tornado.web.RequestHandler):
     SUPPORTED_METHODS = tornado.web.RequestHandler.SUPPORTED_METHODS + ('CONNECT',)
     def prepare(self):
         if self.request.remote_ip in IP_BLACKLIST:
-            self.status(403, "Forbidden")
-            self.finish({"status": "whoops"})
+            self.json({"status": "whoops"}, 403)
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
@@ -51,6 +50,8 @@ class JSONHandler(tornado.web.RequestHandler):
 
 class TrapCard(JSONHandler):
     def prepare(self):
+        if self.request.remote_ip in IP_BLACKLIST:
+            return self.json({"status": "whoops"}, 403)
         _BAN(self.request.remote_ip)
         self.json({"status": "looks like you're going to the shadow realm, Jimbo"}, 400)
         return
