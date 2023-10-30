@@ -41,7 +41,7 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
     samples, latents = _VOICES[voice]
     candidates = []
     tries = 0
-    while True
+    while True:
         print(f"    TRIES: {tries}, CANDIDATES: {len(candidates)}, {candidates}...")
         tries += 1
         with util.silence():
