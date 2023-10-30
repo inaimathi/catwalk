@@ -20,8 +20,8 @@ def _clean(s):
 def _dist(a, b):
     return editdistance.distance(_clean(a), _clean(b))
 
-def _thresh(audio_array, original):
-    numer = _dist(original, basics.transcribe_from_memory(audio_array))
+def _thresh(fname, original):
+    numer = _dist(original, basics.transcribe(fname))
     denom = float(len(_clean(original)))
     return  numer / denom
 
@@ -45,9 +45,10 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
         with util.silence():
             gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
         if isinstance(gen, list):
-            candidates += [(_save(g, voice), _thresh(g, text)) for g in gen]
+            fs = [_save(g, voice) for g in gen]
         else:
-            candidates.append((_save(gen, voice), _thresh(gen, text)))
+            fs = [_save(gen, voice)]
+        candidates += [(f, _thresh(f, text) for f in fs)]
 
     candidates.sort(lambda el: el[1])
     return [f for f, _ in candidates[:k]]

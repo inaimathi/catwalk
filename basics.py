@@ -6,7 +6,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 _WHISPER = whisper.load_model("base")
 
-def transcribe_from_memory(audio):
+def transcribe(audio_file):
+    audio = whisper.load_audio(audio_file)
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(_WHISPER.device)
 
@@ -17,8 +18,6 @@ def transcribe_from_memory(audio):
 
     return result.text
 
-def transcribe(audio_file):
-    return transcribe_from_memory(whisper.load_audio(audio_file))
 
 #_CAPTIONER = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
 _CAPTIONER = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
