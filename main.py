@@ -17,6 +17,7 @@ if not os.path.exists("static"):
     os.makedirs("static")
 
 GPU = asyncio.Semaphore(1)
+STATIC_PORT = 8081
 
 if os.path.exists("))blacklist.txt"):
     with open("blacklist.txt", 'r') as f:
@@ -106,6 +107,7 @@ class TTSHandler(JSONHandler):
         self.json({
             "status": "ok", "voice": voice, "text": text,
             "urls": [f"/static/{os.path.basename(r)}" for r in res]
+            "port": STATIC_PORT
         })
 
 
@@ -127,7 +129,8 @@ class BlogcastHandler(JSONHandler):
                     res_tts = tts.text_to_wavs(el, voice, 1)
                 res.append({
                     "text": el,
-                    "url": f"/static/{os.path.basename(res_tts[0])}"
+                    "url": f"{os.path.basename(res_tts[0])}",
+                    "port": STATIC_PORT
                 })
             else:
                 res.append(el)
@@ -194,4 +197,4 @@ async def main(port, static_port):
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main(8080, 8081))
+    asyncio.run(main(8080, STATIC_PORT))
