@@ -41,8 +41,8 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
     samples, latents = _VOICES[voice]
     candidates = []
     tries = 0
-    while tries <= max_tries or len([f for f, dif in candidates if dif < threshold]) < k:
-        print(f"    TRIES: {tries}, CANDIDATES: {len(candidates)}, THRESHOLDS: {[dif for _, dif in candidates]}...")
+    while (tries <= max_tries) or (len([f for f, dif in candidates if dif < threshold]) >= k):
+        print(f"    TRIES: {tries}, CANDIDATES: {len(candidates)}, {candidates}...")
         tries += 1
         with util.silence():
             gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
@@ -51,6 +51,7 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
         else:
             fs = [_save(gen, voice)]
         candidates += [(f, _thresh(f, text)) for f in fs]
+        candidates.sort(lambda el: el[1])
 
     print("    Collected enough candidates! :D")
     candidates.sort(lambda el: el[1])
