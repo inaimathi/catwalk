@@ -1,9 +1,11 @@
 import os
 
+import editdistance
 import torchaudio
 from tortoise.api import TextToSpeech
 from tortoise.utils.audio import get_voices, load_voices
 
+import basics
 import util
 
 _TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
@@ -11,6 +13,17 @@ _VOICES = {
     voice: load_voices([voice], extra_voice_dirs=["extra-voices"])
     for voice in get_voices(["extra-voices"])
 }
+
+def _clean(s):
+    return s.lower().translate(str.maketrans('', '', string.punctuation))
+
+def _dist(a, b):
+    return editdistance.distance(_clean(a), _clean(b))
+
+def _thresh(audio_array, original):
+    numer = _dist(original, basics.transcribe_from_memory(audio_array))
+    denom = float(len(_clean(original)))
+    return  numer / denom
 
 def get_voices():
     return sorted(_VOICES.keys())
@@ -20,13 +33,21 @@ def _save(arr, voice):
     torchaudio.save(fname, arr.squeeze(0).cpu(), 24000)
     return fname
 
-def text_to_wavs(text, voice=None, k=3):
+def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
     assert (10 >= k >= 1), f"k must be between 1 and 10. got {k}"
     if voice is None:
         voice = "leo"
     samples, latents = _VOICES[voice]
-    with util.silence():
-        gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
-    if isinstance(gen, list):
-        return [_save(g, voice) for g in gen]
-    return [_save(gen, voice)]
+    candidates = []
+    tries = 0
+    while tries <= max_tries or len([f for f, dif in candidates if dif < threshold]) < k:
+        tries += 1
+        with util.silence():
+            gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
+        if isinstance(gen, list):
+            candidates += [(_save(g, voice), _thresh(g, text)) for g in gen]
+        else:
+            candidates.append((_save(gen, voice), _thresh(gen, text)))
+
+    candidates.sort(lambda el: el[1])
+    return [f for f, _ in candidates[:k]]
