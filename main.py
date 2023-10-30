@@ -181,13 +181,14 @@ def serve_static(port):
 THREAD = None
 
 async def main(port, static_port):
+    global THREAD
     print("Setting up app...")
     app = tornado.web.Application(
         ROUTES,
         default_handler_class=TrapCard
     )
-    # THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
-    # THREAD.start()
+    THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
+    THREAD.start()
     print(f"  listening on {port}...")
     app.listen(port)
     await asyncio.Event().wait()
