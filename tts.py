@@ -48,7 +48,7 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
             fs = [_save(g, voice) for g in gen]
         else:
             fs = [_save(gen, voice)]
-        candidates += [(f, _thresh(f, text) for f in fs)]
+        candidates += [(f, _thresh(f, text)) for f in fs]
 
     candidates.sort(lambda el: el[1])
     return [f for f, _ in candidates[:k]]
