@@ -52,7 +52,7 @@ def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
             fs = [_save(gen, voice)]
         candidates += [(f, _thresh(f, text)) for f in fs]
         candidates.sort(key=lambda el: el[1])
-        if tries <= max_tries:
+        if tries >= max_tries:
             print("  reached max tries :|")
             break
         if len([f for f, dif in candidates if dif < threshold]) >= k:
