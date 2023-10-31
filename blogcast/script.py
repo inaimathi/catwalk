@@ -40,7 +40,7 @@ def _element_text(el):
         if el.strip() in {'', '.', '...'}:
             return []
         else:
-            return [el]
+            return [_sanitize(el)]
     elif 'posted' in el.get('class', []):
         try:
             parsed = time.strptime(el.text, "%a %b %d, %Y")
@@ -56,7 +56,7 @@ def _element_text(el):
         return [_sanitize(el.text), " (link in post) "]
     elif el.find("img") not in {None, -1}:
         src = el['src'] or json.loads(el.find("img")["data-attrs"])["src"]
-        return ["Here we see an image of:", caption_image(src), {"silence": 0.5}]
+        return ["Here we see an image of:", _sanitize(caption_image(src)), {"silence": 0.5}]
     elif el.name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
         return [_sanitize(el.text), {"silence": 1.0}]
     elif el.name == "blockquote":
