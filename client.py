@@ -10,6 +10,9 @@ import util
 
 SERVER = "http://192.168.0.12:8080"
 
+def _subport(port):
+    return ":".join(SERVER.split(":")[:-1] + [str(port)])
+
 def get(endpoint, version="v0"):
     return requests.get(f"{SERVER}/{version}/{endpoint}")
 
@@ -47,7 +50,8 @@ def tts(text, voice=None, k=1):
     resp = post(f"audio/tts", data=data)
     if resp.status_code == 200:
         urls = resp.json()['urls']
-        return [download(os.path.basename(url), f"{SERVER}{url}") for url in urls]
+        port = resp.json()['port']
+        return [download(os.path.basename(url), f"{_subport(port)}{url}") for url in urls]
     return resp
 
 def blogcast(url, voice=None, k=1):
@@ -58,11 +62,12 @@ def blogcast(url, voice=None, k=1):
     down_dir = tempfile.mkdtemp(prefix=f"{os.path.basename(url)}-", dir=".")
     with open(f"{down_dir}/result.json", 'w') as f:
         json.dump(res.json(), f, indent=2)
+    port = res.json()['port']
     for ix, el in enumerate(res.json()["result"]):
         furl = el.get('url')
         if furl is not None:
             fname = os.path.basename(furl)
-            download(f"{down_dir}/{str(ix).zfill(6)}-{fname}", f"{SERVER}{furl}")
+            download(f"{down_dir}/{str(ix).zfill(6)}-{fname}", f"{_subport(port)}{furl}")
     return sorted(glob.glob(f"{down_dir}/*wav"))
 
 def multi_blogcast(urls, voice=None, dest_list=None):
