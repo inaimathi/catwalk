@@ -106,7 +106,7 @@ class TTSHandler(JSONHandler):
 
         self.json({
             "status": "ok", "voice": voice, "text": text,
-            "urls": [f"/{os.path.basename(r)}" for r in res]
+            "urls": [f"/{os.path.basename(r)}" for r in res],
             "port": STATIC_PORT
         })
 
@@ -137,7 +137,8 @@ class BlogcastHandler(JSONHandler):
 
         self.json({
             "status": "ok", "voice": voice, "target": url,
-            "result": res
+            "result": res,
+            "port": STATIC_PORT
         })
 
 
