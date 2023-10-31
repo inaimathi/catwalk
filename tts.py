@@ -34,7 +34,7 @@ def _save(arr, voice):
     torchaudio.save(fname, arr.squeeze(0).cpu(), 24000)
     return fname
 
-def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=5):
+def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=3):
     assert (10 >= k >= 1), f"k must be between 1 and 10. got {k}"
     if voice is None:
         voice = "leo"
