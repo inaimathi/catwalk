@@ -135,11 +135,14 @@ class BlogcastHandler(JSONHandler):
             else:
                 res.append(el)
 
-        self.json({
+        response = {
             "status": "ok", "voice": voice, "target": url,
             "result": res,
             "port": STATIC_PORT
-        })
+        }
+        with open(util.fresh_file("blogcast-result-", ".json"), 'wb') as res:
+            res.write(json.dumps(response))
+        self.json(response)
 
 
 class ChatHandler(JSONHandler):
