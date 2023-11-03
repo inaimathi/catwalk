@@ -140,7 +140,7 @@ class BlogcastHandler(JSONHandler):
             "result": res,
             "port": STATIC_PORT
         }
-        with open(util.fresh_file("blogcast-result-", ".json"), 'wb') as out:
+        with open(util.fresh_file("blogcast-result-", ".json"), 'w') as out:
             out.write(json.dumps(response))
         self.json(response)
 
