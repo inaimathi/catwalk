@@ -26,7 +26,11 @@ LETTER_PRONOUNCIATIONS = {
     "w": "double you",
     "x": "ecks",
     "y": "why",
-    "z": "zee"
+    "z": "zee",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four"
 }
 
 def _acronym(acronym):
@@ -41,7 +45,7 @@ MISPRONOUNCED_TOKENS = {
     "nodejs": "node jay ess"
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html" }
+ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv"}
 
 UNICODE = {
     "🤗": "hugging face"
