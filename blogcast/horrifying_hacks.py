@@ -37,10 +37,11 @@ MISPRONOUNCED_TOKENS = {
     "chatgpt": "Chat jee pee tee",
     "openai": "open eh eye",
     "strachan": "strohn",
-    "emacs": "eemacs"
+    "emacs": "eemacs",
+    "nodejs": "node jay ess"
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip" }
+ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html" }
 
 UNICODE = {
     "🤗": "hugging face"
