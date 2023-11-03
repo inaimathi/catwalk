@@ -42,7 +42,8 @@ MISPRONOUNCED_TOKENS = {
     "openai": "open eh eye",
     "strachan": "strohn",
     "emacs": "eemacs",
-    "nodejs": "node jay ess"
+    "nodejs": "node jay ess",
+    "filename": "file name"
 }
 
 ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv"}

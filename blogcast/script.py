@@ -111,7 +111,7 @@ def script_from_langnostic(post_url):
 
     footnotes = footnote_container.findAll("li")
     footnote_count = len(footnotes)
-    foot_note = f"This post had {footnote_count} footnotes that were ommitted from this recording for now."
+    foot_note = f"This post had {footnote_count} {'footnotes that were' if footnote_count > 1 else 'footnote that was'} ommitted from this recording for now."
     for footnote in footnotes:
         ref_id = footnote.findAll("a")[-1].get("href").lstrip("#")
         post.find("a", {"id": ref_id}).replaceWith('')
