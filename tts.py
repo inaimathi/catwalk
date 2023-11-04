@@ -24,6 +24,10 @@ def _dist(a, b):
 def _thresh(fname, original):
     numer = _dist(original, basics.transcribe(fname))
     denom = float(len(_clean(original)))
+    if denom == 0.0:
+        if numer == 0.0:
+            return 0.0
+        return 1.0
     return  numer / denom
 
 def get_voices():
