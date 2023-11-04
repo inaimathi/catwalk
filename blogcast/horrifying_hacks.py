@@ -43,10 +43,11 @@ MISPRONOUNCED_TOKENS = {
     "strachan": "strohn",
     "emacs": "eemacs",
     "nodejs": "node jay ess",
-    "filename": "file name"
+    "filename": "file name",
+    "openjdk": "open jay dee kay"
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv"}
+ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv", "ssl", "ml", "sdk"}
 
 UNICODE = {
     "🤗": "hugging face"

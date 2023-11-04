@@ -26,11 +26,11 @@
 (defun blogcast-fname<-line-ix+url (line-ix url)
   (format "%06.0f-%s.%s" line-ix (file-name-base url) (file-name-extension url)))
 
-(defun blogcast-insert-line (updated played url voice text)
+(defun blogcast-insert-line (updated played url fname voice text)
   (insert (if updated "|" "."))
   (insert (if played "|" "."))
   (insert bc-sep)
-  (insert (string-join (list url voice text) bc-sep))
+  (insert (string-join (list url fname voice text) bc-sep))
   (newline))
 
 (defun blogcast-parse-line (ln)
@@ -39,8 +39,9 @@
     (list :updated (char-equal ?| (aref flags 0))
 	  :played (char-equal ?| (aref flags 1))
 	  :url (second split)
-	  :voice (nth 2 split)
-	  :text (nth 3 split))))
+	  :file (nth 2 split)
+	  :voice (nth 3 split)
+	  :text (nth 4 split))))
 
 (defun blogcast-parse-silence (ln)
   (string-to-number (second (split-string ln " "))))
@@ -59,10 +60,8 @@
        (cl-incf counter)
        (if (string-match "^SILENCE" ln)
 	   (list :silence (blogcast-parse-silence ln))
-	 (let* ((parsed (blogcast-parse-line ln))
-		(url (cl-getf parsed :url))
-		(fname (blogcast-fname<-line-ix+url counter url)))
-	   (list :url url :file fname :voice (cl-getf parsed :voice) :text (cl-getf parsed :text)))))
+	 (let* ((parsed (blogcast-parse-line ln)))
+	   (list :url (cl-getf parsed :url) :file (cl-getf parsed :file) :voice (cl-getf parsed :voice) :text (cl-getf parsed :text)))))
      (seq-filter
       (lambda (ln) (> (length ln) 0))
       (split-string (buffer-string) "\n")))))
@@ -82,19 +81,22 @@
     (let ((blogc (format "%s.blogc" (file-name-sans-extension file))))
       (if (file-exists-p blogc)
 	  (find-file blogc)
-	(let* ((full-json (json-read-file file))
-	       (result (bc-asc 'result full-json))
-	       (voice (bc-asc 'voice full-json)))
-
-	  (switch-to-buffer (format "blogcast--%s" (file-name-base (string-trim-right (file-name-parent-directory file) "/"))))
-	  (cd (file-name-directory file))
-	  (mapc
-	   (lambda (pair)
-	     (if (assoc 'url pair)
-		 (blogcast-insert-line t nil (bc-asc 'url pair) voice (bc-asc 'text pair))
-	       (progn (insert (format "SILENCE %s" (bc-asc 'silence pair)))
-		      (newline))))
-	   result)))))
+	(let ((full-json (json-read-file file)))
+	  (let ((voice (bc-asc 'voice full-json))
+		(results (bc-asc 'result full-json)))
+	    (message (format "DOING THE THING %s %s %s" (length results) voice file))
+	    (switch-to-buffer (format "blogcast--%s" (file-name-base (string-trim-right (file-name-parent-directory file) "/"))))
+	    (cd (file-name-directory file))
+	    (mapc
+	     (lambda (el)
+	       (message "PROCESSING LINE")
+	       (if (assoc 'url el)
+		   (let* ((url (bc-asc 'url el))
+			  (fname (blogcast-fname<-line-ix+url (- (line-number-at-pos) 1) url)))
+		     (blogcast-insert-line t nil url fname voice (bc-asc 'text el)))
+		 (progn (insert (format "SILENCE %s" (bc-asc 'silence el)))
+			(newline))))
+	     results))))))
   (blogcast-write)
   (goto-char (point-min)))
 
@@ -110,15 +112,14 @@
   (let ((ln (blogcast-current-line)))
     (kill-whole-line)
     (save-excursion
-      (blogcast-insert-line (cl-getf ln :updated) t (cl-getf ln :url) (cl-getf ln :voice) (cl-getf ln :text))
+      (blogcast-insert-line (cl-getf ln :updated) t (cl-getf ln :url) (cl-getf ln :file) (cl-getf ln :voice) (cl-getf ln :text))
       (blogcast-write)))
   nil)
 
 (defun blogcast-play-current-line ()
   (interactive)
   (if-let ((ln (blogcast-current-line)))
-      (let* ((url (cl-getf ln :url))
-	     (fname (blogcast-fname<-line-ix+url (- (line-number-at-pos) 1) url)))
+      (let ((fname (cl-getf ln :file)))
 	(message (format "PLAYING -- %s" fname))
 	(blogcast-play fname))))
 
@@ -139,9 +140,19 @@
     (lambda (&key data &allow-other-keys)
       (message (format "RECEIVED: %s" data))))))
 
-(defun blogcast-download-file (ln-number url)
-  (let ((fname (blogcast-fname<-line-ix+url (- ln-number 1) url)))
-    (async-shell-command (format "wget -O %s %s%s" fname blogcast-server url))
+(defun -bc-sub-port (port)
+  (let ((p (format "%s" port)))
+    (string-join
+     (cl-concatenate
+      'list
+      (butlast (split-string blogcast-server ":"))
+      (list p))
+     ":")))
+
+(defun blogcast-download-file (ln-number url port)
+  (let ((fname (blogcast-fname<-line-ix+url (- ln-number 1) url))
+	(full-url (format "%s%s" (if port (-bc-sub-port port) blogcast-server) url)))
+    (async-shell-command (format "wget -O %s %s" fname full-url))
     fname))
 
 (defun blogcast-re-record-current-line ()
@@ -153,7 +164,7 @@
 	 (line-text (cl-getf ln :text)))
     (save-excursion
       (kill-whole-line)
-      (blogcast-insert-line nil nil (cl-getf ln :url) line-voice line-text)
+      (blogcast-insert-line nil nil (cl-getf ln :url) (cl-getf ln :file) line-voice line-text)
       (blogcast-write))
     (blogcast-request
      "v0/audio/tts" "POST" `(("text" . ,line-text) ("voice" . ,line-voice) ("k" . 1))
@@ -164,9 +175,9 @@
 	      (with-current-buffer buf
 		(save-excursion
 		  (goto-line ln-number)
-		  (blogcast-download-file ln-number url)
-		  (kill-whole-line)
-		  (blogcast-insert-line t nil url line-voice (bc-asc 'text data)))
+		  (let ((fname (blogcast-download-file ln-number url (bc-asc 'port data))))
+		    (kill-whole-line)
+		    (blogcast-insert-line t nil url fname line-voice (bc-asc 'text data))))
 		(message (format "RECEIVED FILE: %s" url))))
 	  (message (format "RE-RECORD FAILED: %s" data))))))))
 
@@ -175,7 +186,7 @@
   (let ((ln (blogcast-current-line)))
     (save-excursion
       (kill-whole-line)
-      (blogcast-insert-line nil (cl-getf ln :played) (cl-getf ln :url) (cl-getf ln :voice) (cl-getf ln :text))
+      (blogcast-insert-line nil (cl-getf ln :played) (cl-getf ln :url) (cl-getf ln :file) (cl-getf ln :voice) (cl-getf ln :text))
       (blogcast-write))
     (beginning-of-line)
     (search-forward bc-sep)
@@ -247,15 +258,32 @@
     (goto-char (point-min))
     (re-search-forward "^.\\.")))
 
+(defun blogcast-kill-line ()
+  (interactive)
+  (save-excursion
+    (kill-whole-line)
+    (insert "SILENCE 0.0\n")))
+
+(defun blogcast-split-line ()
+  (interactive)
+  (let ((ln (blogcast-current-line)))
+    (when ln
+      (kill-line)
+      (newline)
+      (insert "SILENCE 0.5\n")
+      (blogcast-insert-line nil nil (cl-getf ln :url) (cl-getf ln :file) (cl-getf ln :voice) (car kill-ring)))))
+
 (define-key blogcast-mode-map (kbd "<return>") 'blogcast-play-current-line)
 (define-key blogcast-mode-map (kbd "C-<down>") 'forward-line)
 (define-key blogcast-mode-map (kbd "C-<up>") 'blogcast-backward-line)
 (define-key blogcast-mode-map (kbd "C-c <return>") 'blogcast-re-record-current-line)
+(define-key blogcast-mode-map (kbd "C-c <space>") 'blogcast-split-line)
 (define-key blogcast-mode-map (kbd "C-<tab>") 'blogcast-edit-line)
 (define-key blogcast-mode-map (kbd "C-c C-s") 'blogcast-save-cast)
 (define-key blogcast-mode-map (kbd "C-M-p") 'blogcast-previous-unplayed)
 (define-key blogcast-mode-map (kbd "C-M-n") 'blogcast-next-unplayed)
 (define-key blogcast-mode-map (kbd "C-p") 'blogcast-previous-unsynced)
 (define-key blogcast-mode-map (kbd "C-n") 'blogcast-next-unsynced)
+(define-key blogcast-mode-map (kbd "C-k") 'blogcast-kill-line)
 
 (provide 'blogcast-mode)
