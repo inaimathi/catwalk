@@ -9,7 +9,6 @@ import util
 
 print("Loading WHISPER...")
 _WHISPER = whisper.load_model("base")
-util.to_gpu(_WHISPER, "3050")
 
 def transcribe(audio_file):
     audio = whisper.load_audio(audio_file)
@@ -25,7 +24,7 @@ def transcribe(audio_file):
 
 print("Loading IMAGE...")
 _IMAGE = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-util.to_gpu(_IMAGE, "2080")
+util.to_gpu(_IMAGE, "1080")
 
 def image_from_prompt(prompt):
     fname = util.fresh_file("image-", ".png")
