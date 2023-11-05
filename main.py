@@ -92,12 +92,24 @@ class ImageHandler(JSONHandler):
         if prompt is None:
             return self.json({"status": "error", "message": "request must have prompt"}, 400)
 
-        async with GPU:
-            res = basics.generate_image(prompt)
+        negative_prompt = self.get_argument("negative_prompt")
+        k = int(self.get_argument("k", "1"))
+        width=int(self.get_argument("width", "1024"))
+        height=int(self.get_argument("height", "1024"))
+        steps=int(self.get_argument("steps", "50"))
+        seed = self.get_argument("seed")
+        if seed is not None:
+            seed = int(seed)
+
+        res = []
+        for _ in range(k):
+            async with GPU:
+                path = basics.generate_image(prompt, negative_prompt, width=width, height=height, steps=steps, seed=seed)
+                res.append(path)
 
         self.json({
             "status": "ok", "prompt": prompt,
-            "url": f"/{os.path.basename(res)}",
+            "urls": [f"/{os.path.basename(path)}" for path in res],
             "port": STATIC_PORT
         })
 

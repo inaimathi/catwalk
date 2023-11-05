@@ -43,8 +43,10 @@ def transcribe(audio_fname):
         res = post("audio/transcribe", files={"file": f})
     return res
 
-def image(prompt):
-    data = {"prompt": prompt}
+def image(prompt, negative_prompt=None, k=1, width=1024, height=1024, steps=50, seed=None):
+    data = {"prompt": prompt, "k": k, "width": width, "height": height, "steps": steps}
+    if negative_prompt is not None:
+        data["negative_prompt"] = negative_prompt
     resp = post(f"image/from_prompt", data=data)
     if resp.status_code == 200:
         urls = resp.json()['urls']
