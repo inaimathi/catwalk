@@ -22,12 +22,7 @@ def transcribe(audio_file, gpu="1080"):
 
     return result.text
 
-def _save(img):
-    fname = util.fresh_file("image-", ".png")
-    img.save(fname)
-    return fname
-
-def generate_image(prompt, negative_prompt=None, k=1, steps=50, width=1024, height=1024, gpu="1080"):
+def generate_image(prompt, negative_prompt=None, steps=50, width=1024, height=1024, gpu="1080"):
     pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
     util.to_gpu(pipe, gpu)
     inp = {
@@ -38,7 +33,9 @@ def generate_image(prompt, negative_prompt=None, k=1, steps=50, width=1024, heig
     if negative_prompt is not None:
         inp["negative_prompt"] = negative_prompt
     images = pipe(**inp).images
-    return [_save(img) for img in images]
+    fname = util.fresh_file("image-", ".png")
+    images[0].save(fname)
+    return fname
 
 _CAPTION = None
 

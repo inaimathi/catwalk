@@ -97,7 +97,7 @@ class ImageHandler(JSONHandler):
 
         self.json({
             "status": "ok", "prompt": prompt,
-            "url": [f"/{os.path.basename(img)}" for img in res],
+            "url": f"/{os.path.basename(res)}",
             "port": STATIC_PORT
         })
 
