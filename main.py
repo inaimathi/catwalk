@@ -212,8 +212,11 @@ ROUTES = [
 ]
 
 def serve_static(port):
-    print(f"Serving static directory on {port}...")
-    subprocess.run(["python", "-m", "http.server", "-d", "static", str(port)])
+    try:
+        print(f"Serving static directory on {port}...")
+        subprocess.run(["python", "-m", "http.server", "-d", "static", str(port)])
+    except OSError:
+        print(f"Something is already on {port}. Ignoring static serving...")
 
 THREAD = None
 
