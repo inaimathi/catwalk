@@ -27,12 +27,12 @@ def _save(img):
     img.save(fname)
     return fname
 
-def generate_image(prompt, negative_prompt=None, k=1, width=1024, height=1024, gpu="1080"):
+def generate_image(prompt, negative_prompt=None, k=1, steps=50, width=1024, height=1024, gpu="1080"):
     pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
     util.to_gpu(pipe, gpu)
     inp = {
         "prompt": prompt, "negative_prompt": negative_prompt,
-        "num_pages_per_prompt": k,
+        "num_images_per_prompt": k, "num_inference_steps": steps,
         "width": width, "height": height
     }
     if negative_prompt is not None:
