@@ -27,7 +27,7 @@ def generate_image(prompt, negative_prompt=None, steps=50, width=1024, height=10
     util.to_gpu(pipe, gpu)
     inp = {
         "prompt": prompt, "negative_prompt": negative_prompt,
-        "num_images_per_prompt": k, "num_inference_steps": steps,
+        "num_inference_steps": steps,
         "width": width, "height": height
     }
     if seed is not None:

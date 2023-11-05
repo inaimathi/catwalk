@@ -92,12 +92,12 @@ class ImageHandler(JSONHandler):
         if prompt is None:
             return self.json({"status": "error", "message": "request must have prompt"}, 400)
 
-        negative_prompt = self.get_argument("negative_prompt")
+        negative_prompt = self.get_argument("negative_prompt", None)
         k = int(self.get_argument("k", "1"))
         width=int(self.get_argument("width", "1024"))
         height=int(self.get_argument("height", "1024"))
         steps=int(self.get_argument("steps", "50"))
-        seed = self.get_argument("seed")
+        seed = self.get_argument("seed", None)
         if seed is not None:
             seed = int(seed)
 

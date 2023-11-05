@@ -47,6 +47,8 @@ def image(prompt, negative_prompt=None, k=1, width=1024, height=1024, steps=50, 
     data = {"prompt": prompt, "k": k, "width": width, "height": height, "steps": steps}
     if negative_prompt is not None:
         data["negative_prompt"] = negative_prompt
+    if seed is not None:
+        data["seed"] = seed
     resp = post(f"image/from_prompt", data=data)
     if resp.status_code == 200:
         urls = resp.json()['urls']
