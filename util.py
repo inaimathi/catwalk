@@ -125,7 +125,7 @@ def to_gpu(torch_thing, name=None, ix=None):
         dev_ix = ix
     elif name is not None:
         # Find a GPU by given substring
-        dev_ix = gpu_ix_by_substring(gpu_substring)
+        dev_ix = gpu_ix_by_substring(name)
     else:
         # Find GPU with most remaining free memory
         dev_ix = sorted(list_gpus(), key=lambda d: d['mem_free'], reverse=True)[0]['ix']
