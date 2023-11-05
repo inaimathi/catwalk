@@ -32,7 +32,7 @@ util.to_gpu(_IMAGE, "2080")
     return fname
 
 print("Loading CAPTION...")
-_CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+# _CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
 _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 
 def caption_image(url):
