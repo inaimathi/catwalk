@@ -119,9 +119,11 @@ class BlogcastHandler(JSONHandler):
 
         voice = self.get_argument("voice", "leo")
 
+        print(f"Generating cast of {url}...")
         async with GPU:
             script = blogcast.script.script_from(url)
 
+        print(f"   create script of {len(script)} lines...")
         res = []
         for el in tqdm.tqdm(script):
             if isinstance(el, str):
@@ -135,6 +137,7 @@ class BlogcastHandler(JSONHandler):
             else:
                 res.append(el)
 
+        print(f"   done speaking...")
         response = {
             "status": "ok", "voice": voice, "target": url,
             "result": res,
