@@ -40,10 +40,12 @@ def generate_image(prompt, negative_prompt=None, k=1, steps=50, width=1024, heig
     images = pipe(**inp).images
     return [_save(img) for img in images]
 
-print("Loading CAPTION...")
-_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl") # "Salesforce/blip-image-captioning-base"
+_CAPTION = None
 
 def caption_image(url):
+    if _CAPTION is None:
+        print("Loading CAPTION model...")
+        _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl") # "Salesforce/blip-image-captioning-base"
     return _CAPTION(url)[0]['generated_text']
 
 # print("Loading INSTRUCT...")
