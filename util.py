@@ -119,7 +119,7 @@ def gpu_ix_by_substring(substr):
         if substr in dev['name']:
             return dev['ix']
 
-def to_gpu(torch_thing, name=None, ix=None):
+def dev_by(name=None, ix=None):
     if ix is not None:
         # Use given ix
         dev_ix = ix
@@ -130,5 +130,10 @@ def to_gpu(torch_thing, name=None, ix=None):
         # Find GPU with most remaining free memory
         dev_ix = sorted(list_gpus(), key=lambda d: d['mem_free'], reverse=True)[0]['ix']
     if dev_ix is not None:
-        torch_thing.to(f"cuda:{dev_ix}")
+        return f"cuda:{dev_ix}"
+
+def to_gpu(torch_thing, name=None, ix=None):
+    dev = dev_by(name=name, ix=ix)
+    if dev is not None:
+        torch_thing.to(dev)
     return torch_thing

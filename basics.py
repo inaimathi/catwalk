@@ -48,8 +48,9 @@ _INSTRUCT = transformers.pipeline(
     model=_TEXT_MODEL,
     tokenizer=_TOKENIZER,
     torch_dtype=torch.bfloat16,
-    device_map="auto",
+    device_map=dev_by(name="3050"),
 )
+
 
 def generate_text(prompt, max_new_tokens=50):
     return _INSTRUCT(
