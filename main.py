@@ -93,7 +93,7 @@ class ImageHandler(JSONHandler):
             return self.json({"status": "error", "message": "request must have prompt"}, 400)
 
         async with GPU:
-            res = basics.image_from_prompt(prompt)
+            res = basics.generate_image(prompt)
 
         self.json({
             "status": "ok", "prompt": prompt,

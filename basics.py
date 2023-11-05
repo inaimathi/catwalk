@@ -22,11 +22,11 @@ def transcribe(audio_file, gpu="1080"):
 
     return result.text
 
-def image_from_prompt(prompt, gpu="1080"):
+def generate_image(prompt, negative_prompt="easynegative, (mutated:2), (worst quality:2), (low quality:2), (normal quality:2), lowres, blurry, bad detailed background, cropped, jpeg artifacts, non-linear background, out of frame, poorly drawn, asymmetric eyes, bad anatomy, cloned, disfigured, duplicate, extra arms, extra fingers, extra legs, extra limbs, malformed limbs, more than five fingers on one hand:1.5, more than two arm per body:1.5, more than two leg per body:1.5, mutated, mutation, mutilated, odd eyes, ugly, (logo:2), (text:2), (watermark:2), fused", gpu="1080"):
     pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
     util.to_gpu(pipe, gpu)
+    images = pipe(prompt=prompt, negative_prompt=negative_prompt).images
     fname = util.fresh_file("image-", ".png")
-    images = pipe(prompt=prompt).images
     images[0].save(fname)
     return fname
 
