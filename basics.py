@@ -9,7 +9,7 @@ import util
 
 print("Loading WHISPER...")
 _WHISPER = whisper.load_model("base")
-util.to_gpu(_WHISPER, "2080")
+util.to_gpu(_WHISPER, "1080")
 
 def transcribe(audio_file):
     audio = whisper.load_audio(audio_file)
