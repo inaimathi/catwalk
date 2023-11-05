@@ -7,9 +7,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import util
 
+torch.set_default_device(util.dev_by(name="1080"))
+
 print("Loading WHISPER...")
 _WHISPER = whisper.load_model("base")
-util.to_gpu(_WHISPER, "1080")
 
 def transcribe(audio_file):
     audio = whisper.load_audio(audio_file)
@@ -35,7 +36,7 @@ def image_from_prompt(prompt):
 
 print("Loading CAPTION...")
 #_CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl", device=util.dev_by("1080"))
+_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 
 def caption_image(url):
     return _CAPTION(url)
