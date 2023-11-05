@@ -129,7 +129,7 @@ def to_gpu(torch_thing, name=None, ix=None):
     else:
         # Find GPU with most remaining free memory
         dev_ix = sorted(list_gpus(), key=lambda d: d['mem_free'], reverse=True)[0]['ix']
-    dev_ix = gpu_ix_by_substring(gpu_substring)
+    dev_ix = gpu_ix_by_substring(name)
     if dev_ix is not None:
         torch_thing.to(f"cuda:{dev_ix}")
     return torch_thing
