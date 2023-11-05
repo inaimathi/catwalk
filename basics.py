@@ -7,6 +7,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import util
 
+print("Loading WHISPER...")
 _WHISPER = whisper.load_model("base")
 util.to_gpu(_WHISPER, "3050")
 
@@ -22,7 +23,7 @@ def transcribe(audio_file):
 
     return result.text
 
-
+print("Loading IMAGE...")
 _IMAGE = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
 util.to_gpu(_IMAGE, "1080")
 
@@ -32,15 +33,17 @@ def image_from_prompt(prompt):
     images[0].save(fname)
     return fname
 
-#_CAPTIONER = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-_CAPTIONER = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
+print("Loading CAPTION...")
+#_CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 
 def caption_image(url):
-    return _CAPTIONER(url)
+    return _CAPTION(url)
 
+print("Loading INSTRUCT...")
 _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
 _TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
-_PIPE = transformers.pipeline(
+_INSTRUCT = transformers.pipeline(
     "text-generation",
     model=_TEXT_MODEL,
     tokenizer=_TOKENIZER,
@@ -49,7 +52,7 @@ _PIPE = transformers.pipeline(
 )
 
 def generate_text(prompt, max_new_tokens=50):
-    return _PIPE(
+    return _INSTRUCT(
         prompt, do_sample=True,
         top_k=10,
         num_return_sequences=1,
@@ -68,7 +71,7 @@ def summarize_code(code_block):
     return res.choices[0].message.content
 
 # def summarize_code(code_block, max_new_tokens=200):
-#     res = _PIPE(
+#     res = _INSTRUCT(
 #         f"You are an omni-competent programmer and brilliant documentation writer. You're usually the stickler that insists on better docstrings being written when you're on a team. You know all programming languages, and have an impeccable skill for explaining code written in them to others. When asked to write a five-to-eight-sentence summarizing documentation, including a basic note on which language it's written in, on the code {code_block}, you would write:", do_sample=True,
 #         top_k=10,
 #         num_return_sequences=1,
