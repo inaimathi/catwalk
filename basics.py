@@ -8,6 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import util
 
 _WHISPER = whisper.load_model("base")
+util.to_gpu(_WHISPER, "3050")
 
 def transcribe(audio_file):
     audio = whisper.load_audio(audio_file)
@@ -46,7 +47,6 @@ _PIPE = transformers.pipeline(
     torch_dtype=torch.bfloat16,
     device_map="auto",
 )
-util.to_gpu(_PIPE, "3050")
 
 def generate_text(prompt, max_new_tokens=50):
     return _PIPE(
