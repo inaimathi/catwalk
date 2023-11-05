@@ -212,11 +212,8 @@ ROUTES = [
 ]
 
 def serve_static(port):
-    try:
-        print(f"Serving static directory on {port}...")
-        subprocess.run(["python", "-m", "http.server", "-d", "static", str(port)])
-    except OSError:
-        print(f"Something is already on {port}. Ignoring static serving...")
+    print(f"Serving static directory on {port}...")
+    subprocess.run(["python", "-m", "http.server", "-d", "static", str(port)])
 
 THREAD = None
 
@@ -227,8 +224,11 @@ async def main(port, static_port):
         ROUTES,
         default_handler_class=TrapCard
     )
-    THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
-    THREAD.start()
+    try:
+        THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
+        THREAD.start()
+    except OSError:
+        print(f"Something is already on {port}. Ignoring static serving...")
     print(f"  listening on {port}...")
     app.listen(port)
     await asyncio.Event().wait()
