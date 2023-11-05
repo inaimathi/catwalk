@@ -48,7 +48,7 @@ _INSTRUCT = transformers.pipeline(
     model=_TEXT_MODEL,
     tokenizer=_TOKENIZER,
     torch_dtype=torch.bfloat16,
-    device_map=dev_by(name="3050"),
+    device_map=util.dev_by(name="3050"),
 )
 
 
