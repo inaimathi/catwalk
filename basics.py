@@ -40,19 +40,20 @@ _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 def caption_image(url):
     return _CAPTION(url)
 
-print("Loading INSTRUCT...")
-_TEXT_MODEL = "tiiuae/falcon-7b-instruct"
-_TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
-_INSTRUCT = transformers.pipeline(
-    "text-generation",
-    model=_TEXT_MODEL,
-    tokenizer=_TOKENIZER,
-    torch_dtype=torch.bfloat16,
-    device_map=util.dev_by(name="3050"),
-)
+# print("Loading INSTRUCT...")
+# _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
+# _TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
+# _INSTRUCT = transformers.pipeline(
+#     "text-generation",
+#     model=_TEXT_MODEL,
+#     tokenizer=_TOKENIZER,
+#     torch_dtype=torch.bfloat16,
+#     device_map=util.dev_by(name="3050"),
+# )
 
 
 def generate_text(prompt, max_new_tokens=50):
+    return None
     return _INSTRUCT(
         prompt, do_sample=True,
         top_k=10,
