@@ -11,7 +11,6 @@ import util
 
 print("Loading TTS...")
 _TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
-util.to_gpu(_TTS, "2080")
 _VOICES = {
     voice: load_voices([voice], extra_voice_dirs=["extra-voices"])
     for voice in get_voices(["extra-voices"])
