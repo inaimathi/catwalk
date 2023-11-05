@@ -47,9 +47,9 @@ def image(prompt):
     data = {"prompt": prompt}
     resp = post(f"image/from_prompt", data=data)
     if resp.status_code == 200:
-        url = resp.json()['url']
+        urls = resp.json()['urls']
         port = resp.json()['port']
-        return download(os.path.basename(url), f"{_subport(port)}{url}")
+        return [download(os.path.basename(url), f"{_subport(port)}{url}") for url in urls]
     return resp
 
 def tts(text, voice=None, k=1):

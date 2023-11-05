@@ -22,20 +22,29 @@ def transcribe(audio_file, gpu="1080"):
 
     return result.text
 
-def generate_image(prompt, negative_prompt="easynegative, (mutated:2), (worst quality:2), (low quality:2), (normal quality:2), lowres, blurry, bad detailed background, cropped, jpeg artifacts, non-linear background, out of frame, poorly drawn, asymmetric eyes, bad anatomy, cloned, disfigured, duplicate, extra arms, extra fingers, extra legs, extra limbs, malformed limbs, more than five fingers on one hand:1.5, more than two arm per body:1.5, more than two leg per body:1.5, mutated, mutation, mutilated, odd eyes, ugly, (logo:2), (text:2), (watermark:2), fused", gpu="1080"):
-    pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-    util.to_gpu(pipe, gpu)
-    images = pipe(prompt=prompt, negative_prompt=negative_prompt).images
+def _save(img):
     fname = util.fresh_file("image-", ".png")
-    images[0].save(fname)
+    img.save(fname)
     return fname
 
+def generate_image(prompt, negative_prompt=None, k=1, width=1024, height=1024, gpu="1080"):
+    pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+    util.to_gpu(pipe, gpu)
+    inp = {
+        "prompt": prompt, "negative_prompt": negative_prompt,
+        "num_pages_per_prompt": k,
+        "width": width, "height": height
+    }
+    if negative_prompt is not None:
+        inp["negative_prompt"] = negative_prompt
+    images = pipe(**inp).images
+    return [_save(img) for img in images]
+
 print("Loading CAPTION...")
-# _CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl") # "Salesforce/blip-image-captioning-base"
 
 def caption_image(url):
-    pipe = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
-    return pipe(url)
+    return _CAPTION(url)[0]['generated_text']
 
 # print("Loading INSTRUCT...")
 # _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
