@@ -10,7 +10,7 @@ import basics
 import util
 
 print("Loading TTS...")
-_TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
+# _TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True)
 _VOICES = {
     voice: load_voices([voice], extra_voice_dirs=["extra-voices"])
     for voice in get_voices(["extra-voices"])
@@ -40,6 +40,7 @@ def _save(arr, voice):
     return fname
 
 def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=3):
+    return []
     assert (10 >= k >= 1), f"k must be between 1 and 10. got {k}"
     if voice is None:
         voice = "leo"
