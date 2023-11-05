@@ -23,13 +23,11 @@ def transcribe(audio_file):
 
     return result.text
 
-print("Loading IMAGE...")
-_IMAGE = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-util.to_gpu(_IMAGE, "1080")
-
 def image_from_prompt(prompt):
+    pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+util.to_gpu(_IMAGE, "2080")
     fname = util.fresh_file("image-", ".png")
-    images = _IMAGE(prompt=prompt).images
+    images = pipe(prompt=prompt).images
     images[0].save(fname)
     return fname
 
