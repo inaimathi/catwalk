@@ -132,3 +132,4 @@ def to_gpu(torch_thing, name=None, ix=None):
     dev_ix = gpu_ix_by_substring(gpu_substring)
     if dev_ix is not None:
         torch_thing.to(f"cuda:{dev_ix}")
+    return torch_thing

@@ -86,6 +86,20 @@ class TranscribeHandler(JSONHandler):
         async with GPU:
             return jsonify({"status": "ok", "result": basics.transcribe(path)})
 
+class ImageHandler(JSONHandler):
+    async def post(self):
+        prompt = self.get_argument("prompt")
+        if prompt is None:
+            return self.json({"status": "error", "message": "request must have prompt"}, 400)
+
+        async with GPU:
+            res = basics.image_from_prompt(prompt)
+
+        self.json({
+            "status": "ok", "prompt": prompt,
+            "url": f"/{os.path.basename(res)}",
+            "port": STATIC_PORT
+        })
 
 class TTSHandler(JSONHandler):
     def get(self):
@@ -181,6 +195,7 @@ ROUTES = [
     (r"/v0/text/chat", TranscribeHandler),
     (r"/v0/text/generate", TextCompletionHandler),
     (r"/v0/image/describe", DescribeImageHandler),
+    (r"/v0/image/from_prompt", ImageHandler),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": f"{os.getcwd()}/static"})
 ]
 

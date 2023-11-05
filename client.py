@@ -43,6 +43,15 @@ def transcribe(audio_fname):
         res = post("audio/transcribe", files={"file": f})
     return res
 
+def image(prompt):
+    data = {"prompt": prompt}
+    resp = post(f"image/from_prompt", data=data)
+    if resp.status_code == 200:
+        url = resp.json()['url']
+        port = resp.json()['port']
+        return download(os.path.basename(url), f"{_subport(port)}{url}")
+    return resp
+
 def tts(text, voice=None, k=1):
     data = {"text": text, "k": k}
     if voice is not None:

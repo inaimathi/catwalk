@@ -2,7 +2,10 @@ import openai
 import torch
 import transformers
 import whisper
+from diffusers import DiffusionPipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+
+import util
 
 _WHISPER = whisper.load_model("base")
 
@@ -18,6 +21,15 @@ def transcribe(audio_file):
 
     return result.text
 
+
+_IMAGE = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+util.to_gpu(_IMAGE)
+
+def image_from_prompt(prompt):
+    fname = util.fresh_file("image-", ".png")
+    images = _IMAGE(prompt=prompt).images
+    images[0].save(fname)
+    return fname
 
 #_CAPTIONER = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
 _CAPTIONER = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
