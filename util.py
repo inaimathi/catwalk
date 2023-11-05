@@ -8,6 +8,8 @@ import subprocess
 import sys
 import tempfile
 
+import torch
+
 
 @contextlib.contextmanager
 def silence():
@@ -99,3 +101,34 @@ def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
         ])
 #        subprocess.run(["ffmpeg", "-i", audio_file, "-f", "segment", "-segment_times", ",".join(list(pairs)) , "-reset_timestamps", "1", "-map", "0:a", "-c:a", "copy", f"{name}-part-%03d{ext}"])
     return sorted(glob.glob(f"{name}-part-*{ext}"))
+
+def gpu_props(ix):
+    props = torch.cuda.get_device_properties(ix)
+    mem = torch.cuda.mem_get_info(ix)
+    return {
+        "ix": ix, "name": props.name,
+        "cores": props.multi_processor_count,
+        "mem_free": mem[0]/1000000, "mem_total": mem[1]/1000000
+    }
+
+def list_gpus():
+    return [gpu_props(ix) for ix in range(torch.cuda.device_count())]
+
+def gpu_ix_by_substring(substr):
+    for dev in list_gpus():
+        if substr in dev['name']:
+            return dev['ix']
+
+def to_gpu(torch_thing, name=None, ix=None):
+    if ix is not None:
+        # Use given ix
+        dev_ix = ix
+    elif name is not None:
+        # Find a GPU by given substring
+        dev_ix = gpu_ix_by_substring(gpu_substring)
+    else:
+        # Find GPU with most remaining free memory
+        dev_ix = sorted(list_gpus(), key=lambda d: d['mem_free'], reverse=True)[0]['ix']
+    dev_ix = gpu_ix_by_substring(gpu_substring)
+    if dev_ix is not None:
+        torch_thing.to(f"cuda:{dev_ix}")
