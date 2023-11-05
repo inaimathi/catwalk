@@ -23,7 +23,7 @@ def transcribe(audio_file):
 
 
 _IMAGE = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-util.to_gpu(_IMAGE)
+util.to_gpu(_IMAGE, "1080")
 
 def image_from_prompt(prompt):
     fname = util.fresh_file("image-", ".png")
@@ -46,6 +46,7 @@ _PIPE = transformers.pipeline(
     torch_dtype=torch.bfloat16,
     device_map="auto",
 )
+util.to_gpu(_PIPE, "3050")
 
 def generate_text(prompt, max_new_tokens=50):
     return _PIPE(
