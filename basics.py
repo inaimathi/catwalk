@@ -35,7 +35,7 @@ def image_from_prompt(prompt):
 
 print("Loading CAPTION...")
 #_CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl", device="cpu")
+_CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl", device=util.dev_by("1080"))
 
 def caption_image(url):
     return _CAPTION(url)
