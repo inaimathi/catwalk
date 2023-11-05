@@ -7,11 +7,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import util
 
-print("Loading WHISPER...")
-_WHISPER = whisper.load_model("base")
-util.to_gpu(_WHISPER, "1080")
 
 def transcribe(audio_file):
+    pipe = whisper.load_model("base")
+    util.to_gpu(pipe, "1080")
     audio = whisper.load_audio(audio_file)
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(_WHISPER.device)
@@ -25,7 +24,7 @@ def transcribe(audio_file):
 
 def image_from_prompt(prompt):
     pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-    util.to_gpu(_IMAGE, "2080")
+    util.to_gpu(pipe, "2080")
     fname = util.fresh_file("image-", ".png")
     images = pipe(prompt=prompt).images
     images[0].save(fname)
@@ -33,11 +32,11 @@ def image_from_prompt(prompt):
 
 print("Loading CAPTION...")
 # _CAPTION = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-# _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
 
 def caption_image(url):
+    pipe = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl")
     return None
-    return _CAPTION(url)
+    return pipe(url)
 
 # print("Loading INSTRUCT...")
 # _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
