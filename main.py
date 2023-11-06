@@ -10,6 +10,7 @@ import tqdm
 
 import basics
 import blogcast.script
+import images
 import tts
 import util
 
@@ -104,7 +105,7 @@ class ImageHandler(JSONHandler):
         res = []
         for _ in range(k):
             async with GPU:
-                path = basics.generate_image(prompt, negative_prompt, width=width, height=height, steps=steps, seed=seed)
+                path = images.generate_image(prompt, negative_prompt, width=width, height=height, steps=steps, seed=seed)
                 res.append(path)
 
         self.json({

@@ -2,7 +2,6 @@ import openai
 import torch
 import transformers
 import whisper
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import util
@@ -21,27 +20,6 @@ def transcribe(audio_file, gpu="1080"):
     result = whisper.decode(_WHISPER, mel, opts)
 
     return result.text
-
-def generate_image(prompt, negative_prompt=None, steps=50, width=1024, height=1024, gpu="1080", seed=None, model="stabilityai/stable-diffusion-xl-base-1.0"):
-    if model.endswith("safetensors"):
-        pipe = StableDiffusionPipeline.from_single_file(model)
-    else:
-        pipe = DiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-    util.to_gpu(pipe, gpu)
-    inp = {
-        "prompt": prompt, "negative_prompt": negative_prompt,
-        "num_inference_steps": steps,
-        "width": width, "height": height
-    }
-    if seed is not None:
-        gen = torch.Generator(util.dev_by(gpu)).manual_seed(seed)
-        inp["generator"] = gen
-    if negative_prompt is not None:
-        inp["negative_prompt"] = negative_prompt
-    images = pipe(**inp).images
-    fname = util.fresh_file("image-", ".png")
-    images[0].save(fname)
-    return fname
 
 _CAPTION = None
 
