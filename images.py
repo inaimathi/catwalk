@@ -8,7 +8,7 @@ def load_model(name, gpu="1080", loras=[]):
     if name.endswith("safetensors"):
         pipe = StableDiffusionPipeline.from_single_file(name)
     else:
-        pipe = DiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+        pipe = DiffusionPipeline.from_pretrained(name, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
     for l in loras:
         pipe.load_lora_weights(l)
     util.to_gpu(pipe, gpu)
