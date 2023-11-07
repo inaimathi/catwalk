@@ -10,7 +10,7 @@ import basics
 import util
 
 print("Loading TTS...")
-_TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True, device=util.dev_by(name="2080"))
+_TTS = TextToSpeech(kv_cache=True, half=True, use_deepspeed=True, device=util.dev_by(name="3050"))
 _VOICES = {
     voice: load_voices([voice], extra_voice_dirs=["extra-voices"])
     for voice in get_voices(["extra-voices"])
