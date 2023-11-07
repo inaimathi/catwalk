@@ -35,6 +35,17 @@ def key_interrupt():
 def silent_cmd(command):
     return subprocess.check_output(command, stderr=subprocess.DEVNULL)
 
+def feh(fname_or_list):
+    cmd = ["feh", "-Fs"]
+    if isinstance(fname_or_list, str):
+        fname_or_list = [fname_or_list]
+    silent_cmd(cmd + fname_or_list)
+
+def fehgrid(w, h, flist):
+    imgW = 200
+    cmd = ["feh", "-Fsi", "--index-info", "''", "--thumb-width", str(imgW), "--thumb-height", str(imgW), "--limit-width", str(w * imgW), "--limit-height", str((h+1) * imgW)]
+    silent_cmd(cmd + flist)
+
 def play(fname_or_list):
     with key_interrupt():
         if isinstance(fname_or_list, list):

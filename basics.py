@@ -8,8 +8,8 @@ import util
 
 
 def transcribe(audio_file, gpu="1080"):
-    pipe = whisper.load_model("base")
-    util.to_gpu(pipe, gpu)
+    _WHISPER = whisper.load_model("base")
+    util.to_gpu(_WHISPER, gpu)
     audio = whisper.load_audio(audio_file)
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(_WHISPER.device)
