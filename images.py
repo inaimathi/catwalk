@@ -5,7 +5,7 @@ import util
 
 
 def load_model(name, gpu="1080", loras=[]):
-    if name.endswith("safetensors"):
+    if name.endswith(".safetensors") or name.endswith(".ckpt"):
         pipe = StableDiffusionPipeline.from_single_file(name)
     else:
         pipe = DiffusionPipeline.from_pretrained(name, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")

@@ -152,7 +152,7 @@ class BlogcastHandler(JSONHandler):
 
         print(f"   create script of {len(script)} lines...")
         res = []
-        for el in tqdm.tqdm(script):
+        for el in tqdm.tqdm(script, ascii=True):
             if isinstance(el, str):
                 async with GPU:
                     res_tts = tts.text_to_wavs(el, voice, 1)

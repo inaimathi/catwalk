@@ -47,10 +47,11 @@ MISPRONOUNCED_TOKENS = {
     "openjdk": "open jay dee kay"
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv", "ssl", "ml", "sdk"}
+ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv", "ssl", "ml", "sdk", "cljs", "ui"}
 
 UNICODE = {
-    "🤗": "hugging face"
+    "🤗": "hugging face",
+    "🦄": "unicorn"
 }
 
 RE = re.compile(r'(?:\b(?:%s|{u"\U0001F600-\U0001F64F"})\b)|(?:%s)' % (
