@@ -9,6 +9,7 @@ import sys
 import tempfile
 
 import torch
+import tqdm
 
 
 @contextlib.contextmanager
@@ -96,15 +97,25 @@ def _silence_locations(audio_file, silence_duration, dB_threshold):
 
 def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
     name, ext = os.path.splitext(os.path.basename(audio_file))
-    silence_locs = _silence_locations(audio_file, silence_duration, dB_threshold)
-    first_silence_start = next(silence_locs)
+    thresh = dB_threshold
+    silence_locs = []
+    print("Figuring out silence locs...")
+    while not silence_locs:
+        silence_locs = list(_silence_locations(audio_file, silence_duration, thresh))
+        print(f"    {len(silence_locs)}")
+        thresh += 5
+    first_silence_start = silence_locs[0]
+    print(f"  processing first silence 0-{first_silence_start}...")
     silent_cmd([
         "ffmpeg", "-i", audio_file,
         "-to", first_silence_start, "-c", "copy",
         f"{name}-part-00000{ext}"
     ])
-    end_start_pairs = list(batched(silence_locs, 2))[:-1]
-    for ix, (end, start) in enumerate(end_start_pairs):
+    print("  processing remainder...")
+    end_start_pairs = list(batched(silence_locs[1:], 2))[:-1]
+    pbar = tqdm.tqdm(total=len(end_start_pairs), ascii=True)
+    for ix, (end, start) in enumerate(end_start_pairs, start=1):
+        pbar.update(1)
         silent_cmd([
             "ffmpeg", "-i", audio_file,
             "-ss", end, "-to", start, "-c", "copy",
@@ -112,6 +123,13 @@ def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
         ])
 #        subprocess.run(["ffmpeg", "-i", audio_file, "-f", "segment", "-segment_times", ",".join(list(pairs)) , "-reset_timestamps", "1", "-map", "0:a", "-c:a", "copy", f"{name}-part-%03d{ext}"])
     return sorted(glob.glob(f"{name}-part-*{ext}"))
+
+def youtube_audio(output, url):
+    subprocess.call(["youtube-dl", "-o", f"{output}.%(ext)s", "-x", "--audio-format", "wav", url])
+    return glob.glob(f"{output}.wav")[0]
+
+def splits_from_url(output, url):
+    return split_audio_by_silence(youtube_audio(output, url), dB_threshold=-50)
 
 def gpu_props(ix):
     props = torch.cuda.get_device_properties(ix)

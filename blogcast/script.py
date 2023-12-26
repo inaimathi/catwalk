@@ -98,6 +98,30 @@ def script_from_substack(post_url):
     resp = requests.get(url).json()
     return [resp["title"], resp["subtitle"]] + script_from_html(resp["body_html"])
 
+def script_from_tlp(post_url):
+    resp = requests.get(post_url)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    post = soup.find("div", attrs={"id": "content"})
+    return "TODO"
+
+def script_from_slatestar(post_url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-CA,en-US;q=0.7,en;q=0.3',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site'
+    }
+    resp = requests.get(post_url, headers=headers)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    post = soup.findAll(attrs={"class": re.compile("pjgm-post(title|meta|content)")})
+    return [res[0].text, " ".join([el.text for el in res[1].findAll("span")[0:2]])] + script_from_soup(res[2])
+
+
+
 def script_from_langnostic(post_url):
     resp = requests.get(post_url)
     soup = BeautifulSoup(resp.content, "html.parser")
@@ -122,7 +146,8 @@ def script_from_langnostic(post_url):
 URL_MAP = {
     "^https?://.*?\.substack": script_from_substack,
     "^https?://www.astralcodexten.com": script_from_substack,
-    "^https?://(www.)?inaimathi": script_from_langnostic
+    "^https?://(www.)?inaimathi": script_from_langnostic,
+    "^https?://thelastpsychiatrist.com": script_from_tlp
 }
 
 EXTENSION_MAP = {
