@@ -55,6 +55,7 @@ def _element_text(el):
     elif el.name == "a":
         return [_sanitize(el.text), " (link in post) "]
     elif el.find("img") not in {None, -1}:
+        print(f"IMG = {el}")
         src = el['src'] or json.loads(el.find("img")["data-attrs"])["src"]
         return ["Here we see an image of:", _sanitize(caption_image(src)), {"silence": 0.5}]
     elif el.name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
@@ -102,7 +103,15 @@ def script_from_tlp(post_url):
     resp = requests.get(post_url)
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.find("div", attrs={"id": "content"})
-    return "TODO"
+    for trash in soup.findAll(re.compile("script|iframe|form")):
+        trash.replaceWith('')
+
+    for trash in soup.find(attrs={"id": "share"}):
+        trash.replaceWith('')
+
+    title = post.find("h1").text
+    posted = f"Posted on {soup.find(attrs={'class': 'dated'}).text.strip()}"
+    return [title, posted] + script_from_soup(post.find(attrs={"id": "text"}))
 
 def script_from_slatestar(post_url):
     headers = {
@@ -146,6 +155,7 @@ def script_from_langnostic(post_url):
 URL_MAP = {
     "^https?://.*?\.substack": script_from_substack,
     "^https?://www.astralcodexten.com": script_from_substack,
+    "^https://slatestarcodex": script_from_slatestar,
     "^https?://(www.)?inaimathi": script_from_langnostic,
     "^https?://thelastpsychiatrist.com": script_from_tlp
 }
