@@ -127,7 +127,7 @@ def script_from_slatestar(post_url):
     resp = requests.get(post_url, headers=headers)
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.findAll(attrs={"class": re.compile("pjgm-post(title|meta|content)")})
-    return [res[0].text, " ".join([el.text for el in res[1].findAll("span")[0:2]])] + script_from_soup(res[2])
+    return [post[0].text, " ".join([el.text for el in post[1].findAll("span")[0:2]])] + script_from_soup(post[2])
 
 
 
