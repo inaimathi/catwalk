@@ -24,6 +24,7 @@ def transcribe(audio_file, gpu="1080"):
 _CAPTION = None
 
 def caption_image(url):
+    global _CAPTION
     if _CAPTION is None:
         print("Loading CAPTION model...")
         _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl") # "Salesforce/blip-image-captioning-base"

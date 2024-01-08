@@ -176,11 +176,11 @@ class BlogcastHandler(JSONHandler):
 
 
 class ChatHandler(JSONHandler):
-    def post():
+    def post(self):
         return self.json({"status": "ok", "stub": "TODO"})
 
 class TextCompletionHandler(JSONHandler):
-    async def post():
+    async def post(self):
         prompt = self.get_argument("prompt")
         if prompt is None:
             return self.json({"status": "error", "message": "request must have prompt"}, 400)
@@ -191,7 +191,7 @@ class TextCompletionHandler(JSONHandler):
             return self.json({"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)})
 
 class DescribeImageHandler(JSONHandler):
-    async def post():
+    async def post(self):
         url = self.get_argument("url")
         if url is None:
             self.json({"status": "error", "message": "request must have url"}, 400)
