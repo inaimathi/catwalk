@@ -124,17 +124,7 @@ def script_from_tlp(post_url):
     return [title, posted] + script_from_soup(post.find(attrs={"id": "text"}))
 
 def script_from_slatestar(post_url):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-CA,en-US;q=0.7,en;q=0.3',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'cross-site'
-    }
-    resp = requests.get(post_url, headers=headers)
+    resp = requests.get(post_url, headers=util.FF_HEADERS)
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.findAll(attrs={"class": re.compile("pjgm-post(title|meta|content)")})
     posted_on = " ".join([el.text for el in post[1].findAll("span")[0:2]])

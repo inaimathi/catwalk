@@ -1,4 +1,6 @@
 import openai
+import PIL
+import requests
 import torch
 import transformers
 import whisper
@@ -28,7 +30,11 @@ def caption_image(url):
     if _CAPTION is None:
         print("Loading CAPTION model...")
         _CAPTION = pipeline("image-to-text", model="Salesforce/blip2-flan-t5-xl") # "Salesforce/blip-image-captioning-base"
-    return _CAPTION(url)[0]['generated_text']
+    resp = requests.get(url, headers=util.FF_HEADERS, stream=True)
+    if resp.status_code == 200:
+        img = PIL.Image.open(resp.raw)
+        return _CAPTION(img)[0]['generated_text']
+    return ""
 
 # print("Loading INSTRUCT...")
 # _TEXT_MODEL = "tiiuae/falcon-7b-instruct"

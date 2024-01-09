@@ -11,6 +11,16 @@ import tempfile
 import torch
 import tqdm
 
+FF_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-CA,en-US;q=0.7,en;q=0.3',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'cross-site'
+}
 
 @contextlib.contextmanager
 def silence():
@@ -94,6 +104,9 @@ def _silence_locations(audio_file, silence_duration, dB_threshold):
     for (start, end) in pairs:
         yield start.split(": ")[1].strip()
         yield end.split(" | ")[0].split(": ")[1].strip()
+
+# sagan = https://www.youtube.com/watch?v=wupToqz1e2g
+# russel = https://www.youtube.com/watch?v=ihaB8AFOhZo
 
 def split_audio_by_silence(audio_file, silence_duration=1, dB_threshold=-50):
     name, ext = os.path.splitext(os.path.basename(audio_file))
