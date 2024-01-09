@@ -54,10 +54,20 @@ def _element_text(el):
         return [_sanitize(el.text)]
     elif el.name == "a":
         return [_sanitize(el.text), " (link in post) "]
-    elif el.find("img") not in {None, -1}:
+    elif pic := el.find("img") not in {None, -1}:
         print(f"IMG = {el}")
-        src = el['src'] or json.loads(el.find("img")["data-attrs"])["src"]
-        return ["Here we see an image of:", _sanitize(caption_image(src)), {"silence": 0.5}]
+        src = pic.get('src', None) or json.loads(el.find("img").get("data-attrs", "{}")).get("src", None)
+        alt = pic.get('alt', None)
+        title = pic.get('title', None)
+        if alt and title:
+            meta = f" labelled quote {alt} endquote and titled quote {title} endquote"
+        elif alt:
+            meta = f" labelled quote {alt} endquote"
+        elif title:
+            meta = f" titled quote {title} endquote"
+        else:
+            meta = ""
+        return [f"Here we see an image{meta} of: {_sanitize(caption_image(src))}", {"silence": 0.5}]
     elif el.name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
         return [_sanitize(el.text), {"silence": 1.0}]
     elif el.name == "blockquote":
@@ -127,7 +137,8 @@ def script_from_slatestar(post_url):
     resp = requests.get(post_url, headers=headers)
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.findAll(attrs={"class": re.compile("pjgm-post(title|meta|content)")})
-    return [post[0].text, " ".join([el.text for el in post[1].findAll("span")[0:2]])] + script_from_soup(post[2])
+    posted_on = " ".join([el.text for el in post[1].findAll("span")[0:2]])
+    return [post[0].text, posted_on] + script_from_soup(post[2])
 
 
 
