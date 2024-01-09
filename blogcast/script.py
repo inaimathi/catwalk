@@ -54,7 +54,7 @@ def _element_text(el):
         return [_sanitize(el.text)]
     elif el.name == "a":
         return [_sanitize(el.text), " (link in post) "]
-    elif pic := el.find("img") not in {None, -1}:
+    elif (pic := el.find("img")) not in {None, -1}:
         print(f"IMG = {el}")
         src = pic.get('src', None) or json.loads(el.find("img").get("data-attrs", "{}")).get("src", None)
         alt = pic.get('alt', None)
