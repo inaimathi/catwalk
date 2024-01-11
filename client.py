@@ -67,6 +67,11 @@ def tts(text, voice=None, k=1):
         return [download(os.path.basename(url), f"{_subport(port)}{url}") for url in urls]
     return resp
 
+def name_from_url(url):
+    if fname := os.path.basename(url):
+        return fname
+    return [el for el in url.split("/") if el][-1]
+
 def blogcast(url, voice=None, k=1):
     data = {"url": url}
     if voice is not None:
@@ -74,7 +79,7 @@ def blogcast(url, voice=None, k=1):
     res = post("audio/blogcast", data=data)
     if not res.status_code == 200:
         return None
-    down_dir = tempfile.mkdtemp(prefix=f"{os.path.basename(url)}-", dir=".")
+    down_dir = tempfile.mkdtemp(prefix=f"{name_from_url(url)}-", dir=".")
     with open(f"{down_dir}/result.json", 'w') as f:
         json.dump(res.json(), f, indent=2)
     port = res.json()['port']
