@@ -199,8 +199,12 @@ class DescribeImageHandler(JSONHandler):
         async with GPU:
             return self.json({"status": "ok", "result": basics.caption_image(url)})
 
+class UIHandler:
+    def get(self):
+        self.render("static/index.html")
 
 ROUTES = [
+    (r"/", UIHandler),
     (r"/v0/health", HealthHandler),
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
@@ -208,31 +212,26 @@ ROUTES = [
     (r"/v0/text/chat", TranscribeHandler),
     (r"/v0/text/generate", TextCompletionHandler),
     (r"/v0/image/describe", DescribeImageHandler),
-    (r"/v0/image/from_prompt", ImageHandler),
-    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": f"{os.getcwd()}/static"})
+    (r"/v0/image/from_prompt", ImageHandler)
 ]
-
-# def serve_static(port):
-#     print(f"Serving static directory on {port}...")
-#     subprocess.run(["python", "-m", "http.server", "-d", "static", str(port)])
 
 THREAD = None
 
-async def main(port, static_port):
+async def main(port):
     global THREAD
     print("Setting up app...")
+    static_path = os.path.join(os.path.dirname(__file__), 'static/')
+    print(f"  static serving {static_path} ...")
     app = tornado.web.Application(
         ROUTES,
-        default_handler_class=TrapCard
+        debug=True,
+        default_handler_class=TrapCard,
+        static_path=static_path,
+        static_url_prefix= "/static/"
     )
-    # try:
-    #     THREAD = threading.Thread(target=serve_static, args=(static_port,), daemon=True)
-    #     THREAD.start()
-    # except OSError:
-    #     print(f"Something is already on {port}. Ignoring static serving...")
     print(f"  listening on {port}...")
     app.listen(port)
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main(8080, STATIC_PORT))
+    asyncio.run(main(8080))
