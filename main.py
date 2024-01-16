@@ -237,7 +237,7 @@ class DescribeImageHandler(JSONHandler):
 
 class UIHandler:
     def get(self):
-        self.render("static/index.html")
+        self.render("index.html")
 
 
 class JobsHandler(JSONHandler):
