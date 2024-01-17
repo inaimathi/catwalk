@@ -48,4 +48,4 @@ def _worker():
 
 
 def make_worker():
-    return threading.Thread(_worker, daemon=True)
+    return threading.Thread(target=_worker, daemon=True)
