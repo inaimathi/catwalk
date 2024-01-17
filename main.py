@@ -11,6 +11,7 @@ import images
 import model
 import tts
 import util
+import worker
 
 if not os.path.exists("static"):
     os.makedirs("static")
@@ -280,6 +281,11 @@ ROUTES = [
 async def main(port):
     print("Setting up app...")
     static_path = os.path.join(os.path.dirname(__file__), "static/")
+    print("  initializing model...")
+    model.init()
+    model.refill_queue()
+    print("  starting worker thread...")
+    worker.make_worker().start()
     print(f"  static serving {static_path} ...")
     app = tornado.web.Application(
         ROUTES,
