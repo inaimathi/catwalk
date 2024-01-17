@@ -248,12 +248,15 @@ class JobsHandler(JSONHandler):
         return self.json({"jobs": model.job_tree()})
 
     def post(self):
-        return self.json({"TODO": "make this start a job of some sort"})
+        job_type = self.get_argument("type")
+        job_input = json.loads(self.get_argument("input"))
+        parent = int(self.get_argument("parent"))
+        return self.json(model.new_job(job_type, job_input, parent=parent))
 
 
 class JobHandler(JSONHandler):
     def get(self, job_id):
-        return self.json({"TODO": "get info for given job"})
+        return self.json(model.job_by_id(int(job_id)))
 
     def post(self, job_id):
         return self.json({"TODO": "update a job"})
