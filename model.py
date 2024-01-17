@@ -114,8 +114,10 @@ def new_job(job_type, job_input, parent=None):
     return job
 
 
-def update_job(job_id, output=None, status=None):
+def update_job(job_id, input=None, output=None, status=None):
     update = {}
+    if input is not None:
+        update["input"] = json.dumps(input)
     if output is not None:
         update["output"] = json.dumps(output)
     if status is not None:
