@@ -236,7 +236,7 @@ class DescribeImageHandler(JSONHandler):
             return self.json({"status": "ok", "result": basics.caption_image(url)})
 
 
-class UIHandler:
+class UIHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html")
 
