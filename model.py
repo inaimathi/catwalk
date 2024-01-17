@@ -8,6 +8,14 @@ from pytrivialsql import sqlite
 DB = sqlite.Sqlite3("catwalk.db")
 
 __JOB_QUEUE = Queue()
+JOB_STATUS = [
+    "STARTED",
+    "RUNNING",
+    "WAITING_FOR_CHILDREN",
+    "CANCELLED",
+    "COMPLETE",
+    "ERRORED",
+]
 
 
 def init():
@@ -63,7 +71,7 @@ def job_by_id(job_id):
 
 def all_children_finished_p(job_id):
     children_status = DB.select("jobs", ["status"], where={"parent_job": job_id})
-    if {c["status"] for c in children_status} - {"COMPLETE", "ERRORED"}:
+    if {c["status"] for c in children_status} - {"COMPLETE", "ERRORED", "CANCELLED"}:
         return False
     return True
 
@@ -72,6 +80,22 @@ def jobs_by_parent(job_id):
     return DB.select(
         "jobs", "*", where={"parent_job": job_id}, transform=_transform_job
     )
+
+
+def refill_queue():
+    """Meant to be run on startup. It re-populates the job queue with
+    jobs still on disk, but not yet comlpeted"""
+    queuable = DB.select(
+        "jobs",
+        "*",
+        where=[
+            ("NOT", {"status": {"COMPLETE", "CANCELLED", "WAITING_FOR_CHILDREN"}}),
+            {"status": None},
+        ],
+        transform=_transform_job,
+    )
+    for job in queuable:
+        __JOB_QUEUE.put(job["id"])
 
 
 def new_job(job_type, job_input, parent=None):
@@ -86,7 +110,7 @@ def new_job(job_type, job_input, parent=None):
         props["parent_job"] = parent
     job_id = DB.insert("jobs", **props)
     job = job_by_id(job_id)
-    __JOB_QUEUE.put(job)
+    __JOB_QUEUE.put(job["id"])
     return job
 
 
@@ -95,6 +119,7 @@ def update_job(job_id, output=None, status=None):
     if output is not None:
         update["output"] = json.dumps(output)
     if status is not None:
+        assert status in JOB_STATUS
         update["status"] = status
     if update:
         update["updated"] = datetime.datetime.now()
@@ -103,15 +128,20 @@ def update_job(job_id, output=None, status=None):
     return None
 
 
-# STATUS = ["STARTED", "RUNNING", "WAITING_FOR_CHILDREN", "COMPLETE", "ERRORED"]
-
-
 def pull_job():
-    return __JOB_QUEUE.get()
+    jid = __JOB_QUEUE.get()
+    job = job_by_id(jid)
+    if not job["status"] == "CANCELLED":
+        return job
+    return pull_job()
 
 
 def get_job():
     try:
-        return __JOB_QUEUE.get_nowait()
+        jid = __JOB_QUEUE.get_nowait()
+        job = job_by_id(jid)
+        if not job["status"] == "CANCELLED":
+            return job
+        return get_job()
     except queue.Empty:
         return None
