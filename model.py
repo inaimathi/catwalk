@@ -38,9 +38,9 @@ def _transform_job(raw_job):
     raw_job["input"] = json.loads(raw_job["input"])
     if outp := raw_job["output"]:
         raw_job["output"] = json.loads(outp)
-    for dttype in ["created", "updated"]:
-        if type(val := raw_job[dttype]) is str:
-            raw_job[dttype] = datetime.datetime.fromisoformat(val)
+    # for dttype in ["created", "updated"]:
+    #     if type(val := raw_job[dttype]) is str:
+    #         raw_job[dttype] = datetime.datetime.fromisoformat(val)
     return raw_job
 
 
