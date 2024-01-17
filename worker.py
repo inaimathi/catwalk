@@ -44,7 +44,7 @@ def work_on(job):
 
 def _worker():
     while True:
-        work_on(model.get_job())
+        work_on(model.pull_job())
 
 
 def make_worker():
