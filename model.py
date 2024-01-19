@@ -107,6 +107,7 @@ def new_job(job_type, job_input, parent=None):
         "updated": now,
     }
     if parent is not None:
+        assert job_by_id(parent), f"No such job: {parent}"
         props["parent_job"] = parent
     job_id = DB.insert("jobs", **props)
     job = job_by_id(job_id)

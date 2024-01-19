@@ -4,6 +4,11 @@ import model
 import tts
 from blogcast import script
 
+AVAILABLE_JOBS = {
+    "blogcast": {"inputs": ["url", "voice", "k", "threshold", "max_tries"]},
+    "tts": {"inputs": ["text", "voice", "k", "threshold", "max_tries"]},
+}  # "image", "caption", "code_summarize"
+
 
 def update_parents(job):
     pid = job["parent_job"]
@@ -17,7 +22,7 @@ def update_parents(job):
 
 def work_on(job):
     jtype = job["job_type"]
-    assert jtype in {"blogcast", "tts"}  # "image", "caption", "code_summarize"
+    assert jtype in set(AVAILABLE_JOBS.keys())
     jid = job["id"]
     model.update_job(jid, status="RUNNING")
     try:
@@ -32,7 +37,11 @@ def work_on(job):
             )
         elif jtype == "blogcast":
             scr = script.script_from(job["input"]["url"])
-            model.update_job(jid, status="WAITING_FOR_CHILDREN", output={"script": scr})
+            model.update_job(
+                jid,
+                status="WAITING_FOR_CHILDREN",
+                output={"script": scr, "raw_script": scr},
+            )
             inp = {k: v for k, v in job["input"].items() if not k == "url"}
             for ln in scr:
                 if type(ln) is str:

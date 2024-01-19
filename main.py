@@ -245,15 +245,25 @@ class UIHandler(tornado.web.RequestHandler):
 
 class JobsHandler(JSONHandler):
     def options(self):
-        return self.json({"TODO": "return info on differnet job types you can start"})
+        return self.json(worker.AVAILABLE_JOBS)
 
     def get(self):
         return self.json({"jobs": model.job_tree()})
 
     def post(self):
         job_type = self.get_argument("type")
+        if job_type is None:
+            return self.json(
+                {"status": "error", "message": "request must have a `type`"}, 400
+            )
         job_input = json.loads(self.get_argument("input"))
-        parent = int(self.get_argument("parent"))
+        if job_type is None:
+            return self.json(
+                {"status": "error", "message": "request must have an `input`"}, 400
+            )
+        parent = self.get_argument("parent")
+        if parent is not None:
+            parent = int(parent)
         return self.json(model.new_job(job_type, job_input, parent=parent))
 
 
@@ -262,7 +272,15 @@ class JobHandler(JSONHandler):
         return self.json(model.job_by_id(int(job_id)))
 
     def post(self, job_id):
-        return self.json({"TODO": "update a job"})
+        status = self.get_argument("status")
+        if status is None:
+            return self.json(
+                {"status": "error", "message": "request must have `status`"}, 400
+            )
+        res = model.update_job(int(job_id), status=status)
+        if res is not None:
+            return self.json(res)
+        return self.json({"status": "error", "message": "no change pushed"}, 400)
 
 
 ROUTES = [
@@ -286,9 +304,9 @@ async def main(port):
     static_path = os.path.join(os.path.dirname(__file__), "static/")
     print("  initializing model...")
     model.init()
-    # model.refill_queue()
-    # print("  starting worker thread...")
-    # worker.make_worker().start()
+    model.refill_queue()
+    print("  starting worker thread...")
+    worker.make_worker().start()
     print(f"  static serving {static_path} ...")
     app = tornado.web.Application(
         ROUTES,
