@@ -143,7 +143,7 @@ class ImageHandler(JSONHandler):
             {
                 "status": "ok",
                 "prompt": prompt,
-                "urls": [f"/{os.path.basename(path)}" for path in res],
+                "urls": [util.force_static(path) for path in res],
             }
         )
 
@@ -170,7 +170,7 @@ class TTSHandler(JSONHandler):
                 "status": "ok",
                 "voice": voice,
                 "text": text,
-                "urls": [f"/{os.path.basename(r)}" for r in res],
+                "urls": [util.force_static(r) for r in res],
             }
         )
 
@@ -195,7 +195,7 @@ class BlogcastHandler(JSONHandler):
             if isinstance(el, str):
                 async with GPU:
                     res_tts = tts.text_to_wavs(el, voice, 1)
-                res.append({"text": el, "url": f"/{os.path.basename(res_tts[0])}"})
+                res.append({"text": el, "url": util.force_static(res_tts[0])})
             else:
                 res.append(el)
 
@@ -297,7 +297,7 @@ class AudioStitchHandler(JSONHandler):
             for f in files_and_silences
         )
         res_file = audio.stitch(files_and_silences)
-        return self.json({"file": res_file})
+        return self.json({"file": util.force_static(res_file)})
 
 
 ROUTES = [
