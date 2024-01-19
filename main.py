@@ -291,6 +291,7 @@ class AudioStitchHandler(JSONHandler):
             return self.json(
                 {"status": "error", "message": "request must have `stitch_list`"}, 400
             )
+        files_and_silences = json.loads(files_and_silences)
         res_file = audio.stitch(files_and_silences)
         return self.json({"file": res_file})
 
