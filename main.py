@@ -26,6 +26,8 @@ else:
 
 
 def _BAN(ip):
+    if ip == "127.0.0.1":
+        return
     print(f"BANNING {ip}...")
     with open("blacklist.txt", "a+") as bl:
         bl.write(f"{ip}\n")
@@ -265,6 +267,7 @@ class JobHandler(JSONHandler):
 
 ROUTES = [
     (r"/", UIHandler),
+    (r"/favicon.ico", tornado.web.RedirectHandler, dict(url=r"/static/favicon.ico")),
     (r"/v0/health", HealthHandler),
     (r"/v0/audio/tts", TTSHandler),
     (r"/v0/audio/blogcast", BlogcastHandler),
@@ -283,9 +286,9 @@ async def main(port):
     static_path = os.path.join(os.path.dirname(__file__), "static/")
     print("  initializing model...")
     model.init()
-    model.refill_queue()
-    print("  starting worker thread...")
-    worker.make_worker().start()
+    # model.refill_queue()
+    # print("  starting worker thread...")
+    # worker.make_worker().start()
     print(f"  static serving {static_path} ...")
     app = tornado.web.Application(
         ROUTES,
