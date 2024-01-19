@@ -291,7 +291,8 @@ class AudioStitchHandler(JSONHandler):
             return self.json(
                 {"status": "error", "message": "request must have `stitch_list`"}, 400
             )
-        files_and_silences = json.loads(
+        files_and_silences = json.loads(files_and_silences)
+        files_and_silences = (
             os.path.join("static", os.path.basename(f)) if type(f) is str else f
             for f in files_and_silences
         )
