@@ -5,6 +5,7 @@ import os
 import tornado
 import tqdm
 
+import audio
 import basics
 import blogcast.script
 import images
@@ -283,6 +284,17 @@ class JobHandler(JSONHandler):
         return self.json({"status": "error", "message": "no change pushed"}, 400)
 
 
+class AudioStitchHandler(JSONHandler):
+    def post(self):
+        files_and_silences = self.get_argument("stitch_list")
+        if files_and_silences is None:
+            return self.json(
+                {"status": "error", "message": "request must have `stitch_list`"}, 400
+            )
+        res_file = audio.stitch(files_and_silences)
+        return self.json({"file": res_file})
+
+
 ROUTES = [
     (r"/", UIHandler),
     (r"/favicon.ico", tornado.web.RedirectHandler, dict(url=r"/static/favicon.ico")),
@@ -296,6 +308,7 @@ ROUTES = [
     (r"/v0/image/from_prompt", ImageHandler),
     (r"/v1/job", JobsHandler),
     (r"/v1/job/([0-9]+)", JobHandler),
+    (r"/v1/audiofile/stitch", AudioStitchHandler),
 ]
 
 
