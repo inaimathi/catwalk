@@ -25,7 +25,11 @@ def work_on(job):
             inp = job["input"]
             text = inp.pop("text")
             res = tts.text_to_wavs(text, **inp)
-            model.update_job(jid, status="COMPLETE", output=res)
+            model.update_job(
+                jid,
+                status="COMPLETE",
+                output=[f"/static/{r.split('/static/')[1]}" for r in res],
+            )
         elif jtype == "blogcast":
             scr = script.script_from(job["input"]["url"])
             model.update_job(jid, status="WAITING_FOR_CHILDREN", output={"script": scr})
