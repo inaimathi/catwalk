@@ -262,7 +262,7 @@ class JobsHandler(JSONHandler):
             return self.json(
                 {"status": "error", "message": "request must have an `input`"}, 400
             )
-        parent = self.get_argument("parent")
+        parent = self.get_argument("parent", None)
         if parent is not None:
             parent = int(parent)
         return self.json(model.new_job(job_type, job_input, parent=parent))
