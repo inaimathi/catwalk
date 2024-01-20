@@ -111,7 +111,7 @@ def fresh_file(prefix, suffix, dir="static"):
 
 
 def force_static(fname):
-    return os.path.join("static", os.path.basename(fname))
+    return os.path.join("/static/", os.path.basename(fname))
 
 
 def _silence_locations(audio_file, silence_duration, dB_threshold):
