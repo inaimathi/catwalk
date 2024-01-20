@@ -3,8 +3,8 @@ import string
 
 import editdistance
 import torchaudio
+import tortoise.utils.audio as audio
 from tortoise.api import TextToSpeech
-from tortoise.utils.audio import get_voices, load_voices
 
 import basics
 import util
@@ -16,11 +16,13 @@ _VOICES = {}
 
 def init():
     global _TTS, _VOICES
-    _TTS = TextToSpeech(kv_cache=True, half=True)
-    _VOICES = {
-        voice: load_voices([voice], extra_voice_dirs=["extra-voices"])
-        for voice in get_voices(["extra-voices"])
-    }
+    if _TTS is None:
+        _TTS = TextToSpeech(kv_cache=True, half=True)
+    if not _VOICES:
+        _VOICES = {
+            voice: audio.load_voices([voice], extra_voice_dirs=["extra-voices"])
+            for voice in audio.get_voices(["extra-voices"])
+        }
 
 
 def _clean(s):
