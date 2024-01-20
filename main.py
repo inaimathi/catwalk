@@ -278,7 +278,10 @@ class JobHandler(JSONHandler):
             return self.json(
                 {"status": "error", "message": "request must have `status`"}, 400
             )
-        res = model.update_job(int(job_id), status=status)
+        output = self.get_argument("output", None)
+        if output is not None:
+            output = json.loads(output)
+        res = model.update_job(int(job_id), output=output, status=status)
         if res is not None:
             return self.json(res)
         return self.json({"status": "error", "message": "no change pushed"}, 400)
