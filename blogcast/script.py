@@ -20,7 +20,6 @@ import blogcast.horrifying_hacks as hax
 #     return "A dummy code summary"
 
 
-
 try:
     _TOK = nltk.data.load("tokenizers/punkt/english.pickle")
 except LookupError:
@@ -80,7 +79,7 @@ def _element_text(el):
         return [
             f"Here we see an image{meta} of: ",
             {"silence": 0.1},
-            *[_sanitize(sentence) for sentence in _TOK(caption_image(src))],
+            *[_sanitize(sentence) for sentence in _TOK.tokenize(caption_image(src))],
             {"silence": 0.5},
         ]
     elif el.name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
@@ -110,7 +109,10 @@ def _element_text(el):
             return [
                 "Here is a code block.",
                 {"silence": 0.5},
-                *[_sanitize(sentence) for sentence in _TOK(summarize_code(el.text))],
+                *[
+                    _sanitize(sentence)
+                    for sentence in _TOK.tokenize(summarize_code(el.text))
+                ],
                 "That's the end of the code block.",
                 {"silence": 0.5},
             ]
