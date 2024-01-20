@@ -131,6 +131,11 @@ def update_job(job_id, input=None, output=None, status=None):
     return None
 
 
+def queue_job(job_id):
+    assert job_by_id(job_id), f"No such job: {job_id}"
+    __JOB_QUEUE.put(job_id)
+
+
 def pull_job():
     jid = __JOB_QUEUE.get()
     job = job_by_id(jid)

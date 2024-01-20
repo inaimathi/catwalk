@@ -272,6 +272,11 @@ class JobHandler(JSONHandler):
     def get(self, job_id):
         return self.json(model.job_by_id(int(job_id)))
 
+    def put(self, job_id):
+        model.update_job(job_id, status="STARTED")
+        model.queue_job(job_id)
+        return self.json({"status": "ok"})
+
     def post(self, job_id):
         status = self.get_argument("status")
         if status is None:
