@@ -14,15 +14,20 @@ _TTS = None
 _VOICES = {}
 
 
-def init():
-    global _TTS, _VOICES
-    if _TTS is None:
-        _TTS = TextToSpeech(kv_cache=True, half=True)
+def init_voices():
+    global _VOICES
     if not _VOICES:
         _VOICES = {
             voice: audio.load_voices([voice], extra_voice_dirs=["extra-voices"])
             for voice in audio.get_voices(["extra-voices"])
         }
+
+
+def init():
+    global _TTS
+    if _TTS is None:
+        _TTS = TextToSpeech(kv_cache=True, half=True)
+    init_voices()
 
 
 def _clean(s):
@@ -44,6 +49,7 @@ def _thresh(fname, original):
 
 
 def get_voices():
+    init_voices()
     return sorted(_VOICES.keys())
 
 
