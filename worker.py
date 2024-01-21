@@ -1,6 +1,7 @@
 import json
 import threading
 
+import tornado
 import tornado.websocket
 
 import model
@@ -16,6 +17,7 @@ AVAILABLE_JOBS = {
 
 class SocketServer(tornado.websocket.WebSocketHandler):
     CLIENTS = set()
+    IOloop = tornado.ioloop.IOLoop.current()
 
     def open(self):
         SocketServer.CLIENTS.add(self)
@@ -34,13 +36,14 @@ class SocketServer(tornado.websocket.WebSocketHandler):
     def send_job_update(cls, job):
         if job is None:
             return
-        cls.send_message(
+        cls.IOloop.asyncio_loop.call_soon_threadsafe(
+            cls.send_message,
             {
                 "job_id": job["id"],
                 "status": job["status"],
                 "parent": job["parent_job"],
                 "output": job["output"],
-            }
+            },
         )
 
 
