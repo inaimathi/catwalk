@@ -48,6 +48,10 @@ def all_jobs():
     return DB.select("jobs", "*", transform=_transform_job)
 
 
+def jobs_by_id(ids):
+    return DB.select("jobs", "*", where={"id": set(ids)}, transform=_transform_job)
+
+
 def job_tree():
     node_map = {}
     res = []
@@ -80,6 +84,12 @@ def jobs_by_parent(job_id):
     return DB.select(
         "jobs", "*", where={"parent_job": job_id}, transform=_transform_job
     )
+
+
+def job_tree_by_id(job_id):
+    job = job_by_id(job_id)
+    job["children"] = jobs_by_parent(job_id)
+    return job
 
 
 def refill_queue():
