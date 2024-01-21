@@ -19,8 +19,10 @@ class SocketServer(tornado.websocket.WebSocketHandler):
     CLIENTS = set()
     IOloop = tornado.ioloop.IOLoop.current()
 
-    def open(self):
+    def __init__(self):
         SocketServer.IOloop = tornado.ioloop.IOLoop.current()
+
+    def open(self):
         SocketServer.CLIENTS.add(self)
 
     def close(self):
