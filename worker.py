@@ -12,36 +12,35 @@ AVAILABLE_JOBS = {
     "blogcast": {"inputs": ["url", "voice", "k", "threshold", "max_tries"]},
     "tts": {"inputs": ["text", "voice", "k", "threshold", "max_tries"]},
 }  # "image", "caption", "code_summarize"
-__CLIENTS = set()
 
 
 class SocketServer(tornado.websocket.WebSocketHandler):
+    CLIENTS = set()
+
     def open(self):
-        global __CLIENTS
-        __CLIENTS.add(self)
+        SocketServer.CLIENTS.add(self)
 
     def close(self):
-        global __CLIENTS
-        __CLIENTS.remove(self)
+        SocketServer.CLIENTS.remove(self)
 
+    @classmethod
+    def send_message(cls, message):
+        msg = json.dumps(message)
+        for client in cls.CLIENTS:
+            client.write_message(json.dumps(message))
 
-def _send_update(message):
-    global __CLIENTS
-    for client in __CLIENTS:
-        client.write_message(json.dumps(message))
-
-
-def send_job_update(job):
-    if job is None:
-        return
-    _send_update(
-        {
-            "job_id": job["id"],
-            "status": job["status"],
-            "parent": job["parent_job"],
-            "output": job["output"],
-        }
-    )
+    @classmethod
+    def send_job_update(cls, job):
+        if job is None:
+            return
+        cls.send_message(
+            {
+                "job_id": job["id"],
+                "status": job["status"],
+                "parent": job["parent_job"],
+                "output": job["output"],
+            }
+        )
 
 
 def update_parents(job):
@@ -58,7 +57,7 @@ def work_on(job):
     jtype = job["job_type"]
     assert jtype in set(AVAILABLE_JOBS.keys())
     jid = job["id"]
-    send_job_update(model.update_job(jid, status="RUNNING"))
+    SocketServer.send_job_update(model.update_job(jid, status="RUNNING"))
 
     try:
         if jtype == "tts":
@@ -66,7 +65,7 @@ def work_on(job):
             text = inp.pop("text")
             res = tts.text_to_wavs(text, **inp)
             paths = [util.force_static(r) for r in res]
-            send_job_update(
+            SocketServer.send_job_update(
                 model.update_job(
                     jid,
                     status="COMPLETE",
@@ -75,7 +74,7 @@ def work_on(job):
             )
         elif jtype == "blogcast":
             scr = script.script_from(job["input"]["url"])
-            send_job_update(
+            SocketServer.send_job_update(
                 model.update_job(
                     jid,
                     status="WAITING_FOR_CHILDREN",
@@ -85,7 +84,7 @@ def work_on(job):
             inp = {k: v for k, v in job["input"].items() if not k == "url"}
             for ln in scr:
                 if type(ln) is str:
-                    send_job_update(
+                    SocketServer.send_job_update(
                         model.new_job(
                             "tts",
                             {"text": ln, **inp},
@@ -94,7 +93,7 @@ def work_on(job):
                     )
         update_parents(job)
     except Exception as e:
-        send_job_update(
+        SocketServer.send_job_update(
             model.update_job(jid, status="ERRORED", output={"error": str(e)})
         )
 
