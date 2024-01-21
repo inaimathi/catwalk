@@ -176,6 +176,9 @@ class TTSHandler(JSONHandler):
 
 
 class BlogcastHandler(JSONHandler):
+    def get(self):
+        return self.json({"voices": tts.get_voices()})
+
     async def post(self):
         url = self.get_argument("url")
         if url is None:
@@ -249,7 +252,11 @@ class JobsHandler(JSONHandler):
         return self.json(worker.AVAILABLE_JOBS)
 
     def get(self):
-        return self.json({"jobs": model.job_tree()})
+        ids = self.get_argument("ids", None)
+        if ids is not None:
+            ids = json.loads(ids)
+
+        return self.json({"jobs": model.all_jobs()})
 
     def post(self):
         job_type = self.get_argument("type")
@@ -270,6 +277,8 @@ class JobsHandler(JSONHandler):
 
 class JobHandler(JSONHandler):
     def get(self, job_id):
+        if self.get_argument("include_children", None):
+            return self.json(model.job_tree_by_id(int(job_id)))
         return self.json(model.job_by_id(int(job_id)))
 
     def put(self, job_id):
@@ -278,11 +287,7 @@ class JobHandler(JSONHandler):
         return self.json({"status": "ok"})
 
     def post(self, job_id):
-        status = self.get_argument("status")
-        if status is None:
-            return self.json(
-                {"status": "error", "message": "request must have `status`"}, 400
-            )
+        status = self.get_argument("status", None)
         output = self.get_argument("output", None)
         if output is not None:
             output = json.loads(output)
@@ -321,6 +326,7 @@ ROUTES = [
     (r"/v0/image/from_prompt", ImageHandler),
     (r"/v1/job", JobsHandler),
     (r"/v1/job/([0-9]+)", JobHandler),
+    (r"/v1/job/updates", worker.SocketServer),
     (r"/v1/audiofile/stitch", AudioStitchHandler),
 ]
 
