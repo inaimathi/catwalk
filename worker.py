@@ -65,6 +65,9 @@ def update_parents(job):
 
 
 def work_on(job):
+    if job["status"] == "CANCELLED":
+        update_parents(job)
+        return None
     jtype = job["job_type"]
     assert jtype in set(AVAILABLE_JOBS.keys())
     jid = job["id"]

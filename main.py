@@ -283,12 +283,20 @@ class JobHandler(JSONHandler):
             return self.json(model.job_tree_by_id(int(job_id)))
         return self.json(model.job_by_id(int(job_id)))
 
+    def delete(self, job_id):
+        res = model.update_job(job_id, status="CANCELLED")
+        if res is not None:
+            worker.SocketServer.send_job_update(res)
+            return self.json({"status": "ok"})
+        return self.json({"status": "error"}, 400)
+
     def put(self, job_id):
         res = model.update_job(job_id, status="STARTED")
         if res is not None:
             worker.SocketServer.send_job_update(res)
             model.queue_job(job_id)
-        return self.json({"status": "ok"})
+            return self.json({"status": "ok"})
+        return self.json({"status": "error"}, 400)
 
     def post(self, job_id):
         status = self.get_argument("status", None)
