@@ -1,13 +1,47 @@
+import json
 import threading
+
+import tornado.websocket
 
 import model
 import tts
+import util
 from blogcast import script
 
 AVAILABLE_JOBS = {
     "blogcast": {"inputs": ["url", "voice", "k", "threshold", "max_tries"]},
     "tts": {"inputs": ["text", "voice", "k", "threshold", "max_tries"]},
 }  # "image", "caption", "code_summarize"
+__CLIENTS = set()
+
+
+class SocketServer(tornado.websocket.WebSocketHandler):
+    def open(self):
+        global __CLIENTS
+        __CLIENTS.add(self)
+
+    def close(self):
+        global __CLIENTS
+        __CLIENTS.remove(self)
+
+
+def _send_update(message):
+    global __CLIENTS
+    for client in __CLIENTS:
+        client.write_message(json.dumps(message))
+
+
+def send_job_update(job):
+    if job is None:
+        return
+    _send_update(
+        {
+            "job_id": job["id"],
+            "status": job["status"],
+            "parent": job["parent_job"],
+            "output": job["output"],
+        }
+    )
 
 
 def update_parents(job):
@@ -24,35 +58,45 @@ def work_on(job):
     jtype = job["job_type"]
     assert jtype in set(AVAILABLE_JOBS.keys())
     jid = job["id"]
-    model.update_job(jid, status="RUNNING")
+    send_job_update(model.update_job(jid, status="RUNNING"))
+
     try:
         if jtype == "tts":
             inp = job["input"]
             text = inp.pop("text")
             res = tts.text_to_wavs(text, **inp)
-            model.update_job(
-                jid,
-                status="COMPLETE",
-                output=[f"/static/{r.split('/static/')[1]}" for r in res],
+            paths = [util.force_static(r) for r in res]
+            send_job_update(
+                model.update_job(
+                    jid,
+                    status="COMPLETE",
+                    output=paths,
+                )
             )
         elif jtype == "blogcast":
             scr = script.script_from(job["input"]["url"])
-            model.update_job(
-                jid,
-                status="WAITING_FOR_CHILDREN",
-                output={"script": scr, "raw_script": scr},
+            send_job_update(
+                model.update_job(
+                    jid,
+                    status="WAITING_FOR_CHILDREN",
+                    output={"script": scr, "raw_script": scr},
+                )
             )
             inp = {k: v for k, v in job["input"].items() if not k == "url"}
             for ln in scr:
                 if type(ln) is str:
-                    model.new_job(
-                        "tts",
-                        {"text": ln, **inp},
-                        parent=jid,
+                    send_job_update(
+                        model.new_job(
+                            "tts",
+                            {"text": ln, **inp},
+                            parent=jid,
+                        )
                     )
         update_parents(job)
     except Exception as e:
-        model.update_job(jid, status="ERRORED", output={"error": str(e)})
+        send_job_update(
+            model.update_job(jid, status="ERRORED", output={"error": str(e)})
+        )
 
 
 def _worker():
