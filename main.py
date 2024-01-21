@@ -150,6 +150,7 @@ class ImageHandler(JSONHandler):
 
 class TTSHandler(JSONHandler):
     def get(self):
+        worker.SocketServer.send_message("TESTING WEBSOCKET")
         return self.json({"voices": tts.get_voices()})
 
     async def post(self):

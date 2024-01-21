@@ -26,8 +26,9 @@ class SocketServer(tornado.websocket.WebSocketHandler):
     @classmethod
     def send_message(cls, message):
         msg = json.dumps(message)
+        print(f"UPDATING {len(cls.CLIENTS)} WS CLIENTS...")
         for client in cls.CLIENTS:
-            client.write_message(json.dumps(message))
+            client.write_message(msg)
 
     @classmethod
     def send_job_update(cls, job):
