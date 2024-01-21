@@ -27,7 +27,7 @@ def init():
             "job_type TEXT",
             "input TEXT",
             "output TEXT",
-            "status TEXT",
+            "status TEXT NOT NULL DEFAULT 'STARTED'",
             "created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
             "updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
         ],
@@ -98,10 +98,7 @@ def refill_queue():
     queuable = DB.select(
         "jobs",
         "*",
-        where=[
-            ("NOT", {"status": {"COMPLETE", "CANCELLED", "WAITING_FOR_CHILDREN"}}),
-            {"status": None},
-        ],
+        where=("NOT", {"status": {"COMPLETE", "CANCELLED", "WAITING_FOR_CHILDREN"}}),
         transform=_transform_job,
     )
     for job in queuable:

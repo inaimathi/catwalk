@@ -150,7 +150,6 @@ class ImageHandler(JSONHandler):
 
 class TTSHandler(JSONHandler):
     def get(self):
-        worker.SocketServer.send_message("TESTING WEBSOCKET")
         return self.json({"voices": tts.get_voices()})
 
     async def post(self):
@@ -273,7 +272,9 @@ class JobsHandler(JSONHandler):
         parent = self.get_argument("parent", None)
         if parent is not None:
             parent = int(parent)
-        return self.json(model.new_job(job_type, job_input, parent=parent))
+        res = model.new_job(job_type, job_input, parent=parent)
+        worker.SocketServer.send_job_update(res)
+        return self.json(res)
 
 
 class JobHandler(JSONHandler):
@@ -283,8 +284,10 @@ class JobHandler(JSONHandler):
         return self.json(model.job_by_id(int(job_id)))
 
     def put(self, job_id):
-        model.update_job(job_id, status="STARTED")
-        model.queue_job(job_id)
+        res = model.update_job(job_id, status="STARTED")
+        if res is not None:
+            worker.SocketServer.send_job_update(res)
+            model.queue_job(job_id)
         return self.json({"status": "ok"})
 
     def post(self, job_id):
@@ -293,7 +296,9 @@ class JobHandler(JSONHandler):
         if output is not None:
             output = json.loads(output)
         res = model.update_job(int(job_id), output=output, status=status)
+
         if res is not None:
+            worker.SocketServer.send_job_update(res)
             return self.json(res)
         return self.json({"status": "error", "message": "no change pushed"}, 400)
 

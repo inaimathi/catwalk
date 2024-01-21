@@ -69,7 +69,6 @@ def work_on(job):
     assert jtype in set(AVAILABLE_JOBS.keys())
     jid = job["id"]
     SocketServer.send_job_update(model.update_job(jid, status="RUNNING"))
-
     try:
         if jtype == "tts":
             inp = job["input"]
