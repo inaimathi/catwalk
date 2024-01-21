@@ -49,6 +49,7 @@ class SocketServer(tornado.websocket.WebSocketHandler):
                 "job_id": job["id"],
                 "status": job["status"],
                 "parent": job["parent_job"],
+                "input": job["input"],
                 "output": job["output"],
             },
         )
