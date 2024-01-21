@@ -33,7 +33,7 @@ class SocketServer(tornado.websocket.WebSocketHandler):
     def send_message(cls, message):
         msg = json.dumps(message)
         print(f"UPDATING {len(cls.CLIENTS)} WS CLIENTS...")
-        for client in cls.CLIENTS:
+        for client in list(cls.CLIENTS):
             try:
                 client.write_message(msg)
             except tornado.websocket.WebSocketClosedError:
