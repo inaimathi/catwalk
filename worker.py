@@ -60,7 +60,8 @@ def update_parents(job):
     pid = job["parent_job"]
     while pid is not None:
         if model.all_children_finished_p(pid):
-            model.update_job(pid, status="COMPLETE")
+            res = model.update_job(pid, status="COMPLETE")
+            SocketServer.send_job_update(res)
             parent = model.job_by_id(pid)
             pid = parent["parent_job"]
         return
