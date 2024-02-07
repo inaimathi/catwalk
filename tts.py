@@ -60,7 +60,7 @@ def _transcript_distance(fname, original):
     return editdistance.distance(_clean(original), _clean(basics.transcribe(fname)))
 
 
-def text_to_wavs(text, voice=None, k=3, max_tries=3):
+def text_to_wavs(text, voice=None, k=3):
     init()
     assert 10 >= k >= 1, f"k must be between 1 and 10. got {k}"
     if voice is None:
