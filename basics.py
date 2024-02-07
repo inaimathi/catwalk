@@ -9,19 +9,47 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import util
 
 
-def transcribe(audio_file):
+def _transcribe(audio_file):
     model = whisper.load_model("base")
     model.to("cuda")
     audio = whisper.load_audio(audio_file)
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
-
     _, probs = model.detect_language(mel)
     opts = whisper.DecodingOptions()
+    return whisper.decode(model, mel, opts)
 
-    result = whisper.decode(model, mel, opts)
 
-    return result.text
+def transcribe(audio_file):
+    return _transcribe(audio_file).text
+
+
+def transcribe_to_word_srt(audio_file):
+    model = whisper.load_model("base")
+    res = model.transcribe(audio_file, word_timestamps=True)
+    ix = 0
+    for seg in res["segments"]:
+        for wd in seg["words"]:
+            ix += 1
+            res = "\n".join(
+                [
+                    f"{ix}",
+                    f"{util.str_timestamp(wd['start'])} --> {util.str_timestamp(wd['end'])}",
+                    wd["word"].strip(),
+                    "",
+                ]
+            )
+            print(res)
+
+
+def transcribe_to_srt(audio_file):
+    fname = util.fresh_file("transcription-", ".srt")
+    writer = whisper.utils.WriteSRT("static")
+    model = whisper.load_model("base")
+    res = model.transcribe(audio_file)
+    with open(fname, "w") as f:
+        writer.write_result(res, f)
+    return fname
 
 
 _CAPTION = None
