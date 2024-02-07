@@ -77,7 +77,7 @@ def text_to_wavs(text, voice=None, k=3):
         [
             (
                 _transcript_distance(f, text),
-                _transcript_distance(f, estimated_duration),
+                _duration_distance(f, estimated_duration),
                 f,
             )
             for f in fs
