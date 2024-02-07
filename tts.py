@@ -1,11 +1,12 @@
-import os
 import string
+import tempfile
 
 import editdistance
 import torchaudio
 import tortoise.utils.audio as audio
 from tortoise.api import TextToSpeech
 
+import audio as autil
 import basics
 import util
 
@@ -34,20 +35,6 @@ def _clean(s):
     return s.lower().translate(str.maketrans("", "", string.punctuation))
 
 
-def _dist(a, b):
-    return editdistance.distance(_clean(a), _clean(b))
-
-
-def _thresh(fname, original):
-    numer = _dist(original, basics.transcribe(fname))
-    denom = float(len(_clean(original)))
-    if denom == 0.0:
-        if numer == 0.0:
-            return 0.0
-        return 1.0
-    return numer / denom
-
-
 def get_voices():
     init_voices()
     return sorted(_VOICES.keys())
@@ -59,27 +46,42 @@ def _save(arr, voice):
     return fname
 
 
-def text_to_wavs(text, voice=None, k=3, threshold=0.1, max_tries=3):
+def _estimate_duration(text):
+    with tempfile.NamedTemporaryFile() as tmp:
+        util.silent_cmd(["espeak", "-w", tmp.name, text])
+        return autil.duration_of(tmp.name)
+
+
+def _duration_distance(fname, estimated):
+    return abs(estimated - (autil.duration_of(fname)))
+
+
+def _transcript_distance(fname, original):
+    return editdistance.distance(_clean(original), _clean(basics.transcribe(fname)))
+
+
+def text_to_wavs(text, voice=None, k=3, max_tries=3):
     init()
     assert 10 >= k >= 1, f"k must be between 1 and 10. got {k}"
     if voice is None:
         voice = "leo"
     samples, latents = _VOICES[voice]
-    candidates = []
-    tries = 0
-    while True:
-        tries += 1
-        with util.silence():
-            gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
-        if isinstance(gen, list):
-            fs = [_save(g, voice) for g in gen]
-        else:
-            fs = [_save(gen, voice)]
-        candidates += [(f, _thresh(f, text)) for f in fs]
-        candidates.sort(key=lambda el: el[1])
-        if tries >= max_tries:
-            break
-        if len([f for f, dif in candidates if dif < threshold]) >= k:
-            break
+    estimated_duration = _estimate_duration(text)
+    with util.silence():
+        gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
+    if isinstance(gen, list):
+        fs = [_save(g, voice) for g in gen]
+    else:
+        fs = [_save(gen, voice)]
+    candidates = sorted(
+        [
+            (
+                _transcript_distance(f, text),
+                _transcript_distance(f, estimated_duration),
+                f,
+            )
+            for f in fs
+        ]
+    )
 
-    return [f for f, _ in candidates[:k]]
+    return [f for _, _, f in candidates[:k]]
