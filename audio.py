@@ -4,6 +4,19 @@ import subprocess
 import util
 
 
+def duration_of(fname):
+    "Returns the duration of the given audio file in seconds"
+    cmd = [
+        "ffprobe",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        fname,
+    ]
+    return float(util.silent_cmd(cmd))
+
+
 def silence(duration, rate=24000, channels=1):
     fname = f"silence-{duration}.wav"
     if not os.path.exists(fname):
