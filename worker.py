@@ -46,10 +46,10 @@ class SocketServer(tornado.websocket.WebSocketHandler):
         cls.IOloop.asyncio_loop.call_soon_threadsafe(
             cls.send_message,
             {
-                "job_id": job["id"],
+                "id": job["id"],
                 "job_type": job["job_type"],
                 "status": job["status"],
-                "parent": job["parent_job"],
+                "parent_job": job["parent_job"],
                 "input": job["input"],
                 "output": job["output"],
             },
@@ -68,7 +68,7 @@ def update_parents(job):
 
 
 def work_on(job):
-    if job["status"] == "CANCELLED":
+    if job["status"] in {"CANCELLED", "DELETED"}:
         update_parents(job)
         return None
     jtype = job["job_type"]

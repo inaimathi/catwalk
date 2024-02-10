@@ -15,6 +15,7 @@ JOB_STATUS = [
     "CANCELLED",
     "COMPLETE",
     "ERRORED",
+    "DELETED",
 ]
 
 
@@ -45,7 +46,9 @@ def _transform_job(raw_job):
 
 
 def all_jobs():
-    return DB.select("jobs", "*", transform=_transform_job)
+    return DB.select(
+        "jobs", "*", where=("NOT", {"status": "DELETED"}), transform=_transform_job
+    )
 
 
 def jobs_by_id(ids):
@@ -75,7 +78,12 @@ def job_by_id(job_id):
 
 def all_children_finished_p(job_id):
     children_status = DB.select("jobs", ["status"], where={"parent_job": job_id})
-    if {c["status"] for c in children_status} - {"COMPLETE", "ERRORED", "CANCELLED"}:
+    if {c["status"] for c in children_status} - {
+        "COMPLETE",
+        "ERRORED",
+        "CANCELLED",
+        "DELETED",
+    }:
         return False
     return True
 
@@ -98,7 +106,10 @@ def refill_queue():
     queuable = DB.select(
         "jobs",
         "*",
-        where=("NOT", {"status": {"COMPLETE", "CANCELLED", "WAITING_FOR_CHILDREN"}}),
+        where=(
+            "NOT",
+            {"status": {"COMPLETE", "CANCELLED", "WAITING_FOR_CHILDREN", "DELETED"}},
+        ),
         transform=_transform_job,
     )
     for job in queuable:
@@ -146,7 +157,7 @@ def queue_job(job_id):
 def pull_job():
     jid = __JOB_QUEUE.get()
     job = job_by_id(jid)
-    if not job["status"] == "CANCELLED":
+    if not job["status"] in {"CANCELLED", "DELETED"}:
         return job
     return pull_job()
 
@@ -155,7 +166,7 @@ def get_job():
     try:
         jid = __JOB_QUEUE.get_nowait()
         job = job_by_id(jid)
-        if not job["status"] == "CANCELLED":
+        if not job["status"] in {"CANCELLED", "DELETED"}:
             return job
         return get_job()
     except queue.Empty:

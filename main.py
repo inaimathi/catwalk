@@ -269,7 +269,7 @@ class JobsHandler(JSONHandler):
             return self.json(
                 {"status": "error", "message": "request must have an `input`"}, 400
             )
-        parent = self.get_argument("parent", None)
+        parent = self.get_argument("parent_job", None)
         if parent is not None:
             parent = int(parent)
         res = model.new_job(job_type, job_input, parent=parent)
@@ -284,14 +284,17 @@ class JobHandler(JSONHandler):
         return self.json(model.job_by_id(int(job_id)))
 
     def delete(self, job_id):
-        res = model.update_job(job_id, status="CANCELLED")
+        should_delete = self.get_argument("shred", None)
+        res = model.update_job(
+            job_id, status=("CANCELLED" if not should_delete else "DELETED")
+        )
         if res is not None:
             worker.SocketServer.send_job_update(res)
             return self.json({"status": "ok"})
         return self.json({"status": "error"}, 400)
 
     def put(self, job_id):
-        res = model.update_job(job_id, status="STARTED")
+        res = model.update_job(job_id, status="STARTED", output={})
         if res is not None:
             worker.SocketServer.send_job_update(res)
             model.queue_job(job_id)
