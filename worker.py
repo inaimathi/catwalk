@@ -4,6 +4,7 @@ import threading
 import tornado
 import tornado.websocket
 
+import blogcast.horrifying_hacks as hax
 import model
 import tts
 import util
@@ -79,7 +80,7 @@ def work_on(job):
         if jtype == "tts":
             inp = job["input"]
             text = inp.pop("text")
-            res = tts.text_to_wavs(text, **inp)
+            res = tts.text_to_wavs(hax.apply(text), **inp)
             paths = [util.force_static(r) for r in res]
             SocketServer.send_job_update(
                 model.update_job(

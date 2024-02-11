@@ -10,8 +10,6 @@ import util
 from basics import caption_image, summarize_code
 from bs4 import BeautifulSoup
 
-import blogcast.horrifying_hacks as hax
-
 # def caption_image(url):
 #     return "A dummy image caption"
 
@@ -216,7 +214,7 @@ def _script_from_(thing):
     elif os.path.isfile(thing):
         # If it's a thing on disk, use the file scripters
         with open(thing, "r") as f:
-            for ext, fn in EXTENSOIN_MAP:
+            for ext, fn in EXTENSION_MAP:
                 if thing.endswith(ext):
                     return fn(f.read())
     else:
@@ -277,8 +275,7 @@ def _merge_adjacent(script):
 
 def normalize_script(script):
     merged = _merge_adjacent(script)
-    hacked = [hax.apply(s) if isinstance(s, str) else s for s in merged]
-    sentences = _break_paragraphs(hacked)
+    sentences = _break_paragraphs(merged)
     return list(_merge_silence(sentences))
 
 
