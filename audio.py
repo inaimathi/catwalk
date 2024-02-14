@@ -56,7 +56,7 @@ def _tsec(secs):
 
 
 def slice(fname, start, end):
-    outf = util.fresh_file("audio-slice", os.fname.splitext()[1])
+    outf = util.fresh_file("audio-slice", os.path.splitext(fname)[1])
     subprocess.run(
         [
             "ffmpeg",
