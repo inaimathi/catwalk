@@ -1,11 +1,14 @@
 import openai
 import PIL
+import pyannote.audio
 import requests
 import torch
+import torchaudio
 import transformers
 import whisper
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
+import audio
 import util
 
 
@@ -22,6 +25,26 @@ def _transcribe(audio_file):
 
 def transcribe(audio_file):
     return _transcribe(audio_file).text
+
+
+def speaker_diarize(audio_file):
+    model = pyannote.audio.Pipeline.from_pretrained(
+        "pyannote/speaker-diarization@2.1", use_auth_token=True
+    )
+    model.to(torch.device("cuda"))
+    loaded = torchaudio.load(audio_file)
+    annotation = model({"waveform": loaded[0], "sample_rate": loaded[1]})
+    lns = (ln.split() for ln in annotation.to_lab().splitlines())
+
+    return [
+        {
+            "speaker": label,
+            "start": start,
+            "end": end,
+            "text": transcribe(audio.slice(audio_file, start, end)),
+        }
+        for start, end, label in lns
+    ]
 
 
 def transcribe_to_word_srt(audio_file):
@@ -46,6 +69,7 @@ def transcribe_to_srt(audio_file):
     fname = util.fresh_file("transcription-", ".srt")
     writer = whisper.utils.WriteSRT("static")
     model = whisper.load_model("base")
+    model.to("cuda")
     res = model.transcribe(audio_file)
     with open(fname, "w") as f:
         writer.write_result(res, f)

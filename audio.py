@@ -1,5 +1,8 @@
+import datetime
 import os
 import subprocess
+
+import srt
 
 import util
 
@@ -44,3 +47,26 @@ def stitch(files_and_silences_list):
     outfile = util.fresh_file("blogcast", ".wav")
     subprocess.call(["sox", *fnames, outfile])
     return outfile
+
+
+def _tsec(secs):
+    return srt.timedelta_to_srt_timestamp(datetime.timedelta(seconds=secs)).replace(
+        ",", "."
+    )
+
+
+def slice(fname, start, end):
+    outf = util.fresh_file("audio-slice", os.fname.splitext()[1])
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-i",
+            fname,
+            "-ss",
+            _tsec(2.995),
+            "-t",
+            _tsec(20.913),
+            outf,
+        ]
+    )
+    return outf

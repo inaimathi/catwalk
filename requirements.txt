@@ -21,3 +21,5 @@ omegaconf
 pytrivialsql
 diffusers
 tortoise-tts
+pyannote.audio
+srt
