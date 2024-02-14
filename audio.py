@@ -60,6 +60,7 @@ def slice(fname, start, end):
     subprocess.run(
         [
             "ffmpeg",
+            "-y",
             "-i",
             fname,
             "-ss",
