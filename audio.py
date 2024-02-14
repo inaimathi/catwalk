@@ -64,10 +64,11 @@ def slice(fname, start, end):
             "-i",
             fname,
             "-ss",
-            _tsec(2.995),
+            _tsec(start),
             "-t",
-            _tsec(20.913),
+            _tsec(end),
             outf,
-        ]
+        ],
+        stderr=subprocess.DEVNULL,
     )
     return outf
