@@ -41,7 +41,7 @@ def speaker_diarize(audio_file):
             "speaker": label,
             "start": start,
             "end": end,
-            "text": transcribe(audio.slice(audio_file, start, end)),
+            "text": transcribe(audio.slice(audio_file, float(start), float(end))),
         }
         for start, end, label in lns
     ]
