@@ -113,6 +113,8 @@ def refill_queue():
         transform=_transform_job,
     )
     for job in queuable:
+        if job["status"] == "ERRORED":
+            update_job(job["id"], status="STARTED")
         __JOB_QUEUE.put(job["id"])
 
 
