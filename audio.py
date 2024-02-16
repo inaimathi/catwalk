@@ -44,7 +44,7 @@ def stitch(files_and_silences_list):
     fnames = [
         f if type(f) is str else silence(f["silence"]) for f in files_and_silences_list
     ]
-    outfile = util.fresh_file("blogcast", ".wav")
+    outfile = util.fresh_file("stitched", ".wav")
     subprocess.call(["sox", *fnames, outfile])
     return outfile
 

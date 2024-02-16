@@ -160,7 +160,9 @@ def script_from_tlp(post_url):
 
     title = post.find("h1").text
     posted = f"Posted on {soup.find(attrs={'class': 'dated'}).text.strip()}"
-    return [title, posted] + script_from_soup(post.find(attrs={"id": "text"}))
+    return [title, {"silence": 0.5}, posted, {"silence": 1.0}] + script_from_soup(
+        post.find(attrs={"id": "text"})
+    )
 
 
 def script_from_slatestar(post_url):
@@ -168,7 +170,13 @@ def script_from_slatestar(post_url):
     soup = BeautifulSoup(resp.content, "html.parser")
     post = soup.findAll(attrs={"class": re.compile("pjgm-post(title|meta|content)")})
     posted_on = " ".join([el.text for el in post[1].findAll("span")[0:2]])
-    return [post[0].text, posted_on] + script_from_soup(post[2])
+    print([post[0].text, posted_on])
+    return [
+        post[0].text,
+        {"silence": 0.5},
+        posted_on,
+        {"silence": 1.0},
+    ] + script_from_soup(post[2])
 
 
 def script_from_langnostic(post_url):

@@ -4,6 +4,7 @@ import threading
 import tornado
 import tornado.websocket
 
+import audio
 import blogcast.horrifying_hacks as hax
 import model
 import tts
@@ -65,6 +66,8 @@ def update_parents(job):
             SocketServer.send_job_update(res)
             parent = model.job_by_id(pid)
             pid = parent["parent_job"]
+            if res["job_type"] == "blogcast":
+                audio.stitch(res["output"]["script"])
         return
 
 
