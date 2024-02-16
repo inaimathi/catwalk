@@ -60,21 +60,22 @@ def _transcript_distance(fname, original):
     return editdistance.distance(_clean(original), _clean(basics.transcribe(fname)))
 
 
-def text_to_wavs(text, voice=None, k=3):
+def text_to_wavs(text, voice=None, k=3, threshold=0.2, tries=5):
     init()
     assert 10 >= k >= 1, f"k must be between 1 and 10. got {k}"
     if voice is None:
         voice = "leo"
     samples, latents = _VOICES[voice]
     estimated_duration = _estimate_duration(text)
-    with util.silence():
-        gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
-    if isinstance(gen, list):
-        fs = [_save(g, voice) for g in gen]
-    else:
-        fs = [_save(gen, voice)]
-    candidates = sorted(
-        [
+    candidates = []
+    for _ in range(tries):
+        with util.silence():
+            gen = _TTS.tts_with_preset(text, k=k, voice_samples=samples)
+        if isinstance(gen, list):
+            fs = [_save(g, voice) for g in gen]
+        else:
+            fs = [_save(gen, voice)]
+        candidates += [
             (
                 _transcript_distance(f, text),
                 _duration_distance(f, estimated_duration),
@@ -82,6 +83,8 @@ def text_to_wavs(text, voice=None, k=3):
             )
             for f in fs
         ]
-    )
+        candidates.sort()
+        if candidates[0][0] < threshold or candidates[0][1] < threshold:
+            return [f for _, _, f in candidates[:k]]
 
     return [f for _, _, f in candidates[:k]]
