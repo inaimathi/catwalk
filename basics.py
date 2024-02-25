@@ -6,6 +6,7 @@ import torch
 import torchaudio
 import transformers
 import whisper
+from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import audio
@@ -93,6 +94,25 @@ def caption_image(url):
     return ""
 
 
+def text_to_image(
+    prompt, negative_prompt=None, steps=50, width=1024, height=1024, seed=None
+):
+    inp = {
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+        "num_inference_steps": steps,
+        "width": width,
+        "height": height,
+    }
+    # if seed is not None:
+    #     gen = torch.Generator(util.dev_by(gpu)).manual_seed(seed)
+    #     inp["generator"] = gen
+    images = pipe(**inp).images
+    fname = util.fresh_file("image-", ".png")
+    images[0].save(fname)
+    return fname
+
+
 # print("Loading INSTRUCT...")
 # _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
 # _TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
@@ -118,7 +138,8 @@ def generate_text(prompt, max_new_tokens=50):
 
 
 def summarize_code(code_block):
-    res = openai.ChatCompletion.create(
+    client = openai.OpenAI()
+    res = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {
