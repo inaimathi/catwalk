@@ -47,7 +47,7 @@ MISPRONOUNCED_TOKENS = {
     "nodejs": "node jay ess",
     "filename": "file name",
     "openjdk": "open jay dee kay",
-    "xu": "shoe",
+    "xu": "shoo",
     "cfar": "see far",
 }
 
