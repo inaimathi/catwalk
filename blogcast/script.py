@@ -7,15 +7,16 @@ import markdown
 import nltk.data
 import requests
 import util
-from basics import caption_image, summarize_code
+# from basics import caption_image, summarize_code
 from bs4 import BeautifulSoup
 
-# def caption_image(url):
-#     return "A dummy image caption"
+
+def caption_image(url):
+    return "A dummy image caption"
 
 
-# def summarize_code(code_block):
-#     return "A dummy code summary"
+def summarize_code(code_block):
+    return "A dummy code summary"
 
 
 try:
@@ -125,6 +126,11 @@ def _element_text(el):
             ".",
             {"silence": 0.5},
         ]
+    elif el.name == "span" and el.get("class")[0].startswith("blockquote_"):
+        ## Part of LessWrong's internal format I guess?
+        ## We should basically deal with this the way we would
+        ## with any paragraph
+        return _element_text(el.text) + [{"silence": 0.5}]
     else:
         print("OTHER", el.name, el.get("class"))
         return [el]
@@ -201,7 +207,32 @@ def script_from_langnostic(post_url):
     return script_from_soup(post) + [{"silence": 0.5}, foot_note]
 
 
+def script_from_lesswrong(post_url):
+    resp = requests.get(post_url, headers=util.FF_HEADERS)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    post = soup.find("div", {"id": "postBody"})
+    content = (
+        post.findChild("div")
+        .findChild("div", {"class": "commentOnSelection"})
+        .findChild("div")
+        .findChild("div")
+    )
+
+    title = soup.find("h1").text
+    author = soup.find("span", {"class": "PostsAuthors-authorName"}).text
+    date = soup.find("span", {"class": "PostsPageDate-date"}).text
+    return [
+        title,
+        {"silence": 0.5},
+        f"by {author}",
+        {"silence": 0.5},
+        f"Posted on {date}",
+        {"silence": 1.0},
+    ] + script_from_soup(content)
+
+
 URL_MAP = {
+    "^https?://www.lesswrong": script_from_lesswrong,
     "^https?://.*?\.substack": script_from_substack,
     "^https?://www.astralcodexten.com": script_from_substack,
     "^https://slatestarcodex": script_from_slatestar,
