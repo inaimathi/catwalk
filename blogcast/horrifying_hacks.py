@@ -30,12 +30,14 @@ LETTER_PRONOUNCIATIONS = {
     "1": "one",
     "2": "two",
     "3": "three",
-    "4": "four"
+    "4": "four",
 }
+
 
 def _acronym(acronym):
     letters = [LETTER_PRONOUNCIATIONS[lt] for lt in acronym.lower()]
     return " ".join(letters)
+
 
 MISPRONOUNCED_TOKENS = {
     "chatgpt": "Chat jee pee tee",
@@ -44,20 +46,45 @@ MISPRONOUNCED_TOKENS = {
     "emacs": "eemacs",
     "nodejs": "node jay ess",
     "filename": "file name",
-    "openjdk": "open jay dee kay"
+    "openjdk": "open jay dee kay",
+    "xu": "shoe",
+    "cfar": "see far",
 }
 
-ACRONYMS = { "gpt", "ai", "api", "tts", "ssh", "http", "http", "url","amd", "cpu", "tldr", "lts", "ip", "html", "mp3", "mp4", "ogg", "ogv", "ssl", "ml", "sdk", "cljs", "ui"}
-
-UNICODE = {
-    "🤗": "hugging face",
-    "🦄": "unicorn"
+ACRONYMS = {
+    "gpt",
+    "ai",
+    "api",
+    "tts",
+    "ssh",
+    "http",
+    "http",
+    "url",
+    "amd",
+    "cpu",
+    "tldr",
+    "lts",
+    "ip",
+    "html",
+    "mp3",
+    "mp4",
+    "ogg",
+    "ogv",
+    "ssl",
+    "ml",
+    "sdk",
+    "cljs",
+    "ui",
 }
 
-RE = re.compile(r'(?:\b(?:%s|{u"\U0001F600-\U0001F64F"})\b)|(?:%s)' % (
-    '|'.join(ACRONYMS.union(MISPRONOUNCED_TOKENS.keys())),
-    '|'.join(UNICODE.keys())
-), flags=re.IGNORECASE | re.UNICODE)
+UNICODE = {"🤗": "hugging face", "🦄": "unicorn"}
+
+RE = re.compile(
+    r'(?:\b(?:%s|{u"\U0001F600-\U0001F64F"})\b)|(?:%s)'
+    % ("|".join(ACRONYMS.union(MISPRONOUNCED_TOKENS.keys())), "|".join(UNICODE.keys())),
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
 
 def _replace(m):
     low = m.group(0).lower()
@@ -68,6 +95,7 @@ def _replace(m):
     if low in UNICODE:
         return UNICODE[low]
     return m.group(0)
+
 
 def apply(string):
     return re.subn(RE, _replace, string)[0]
