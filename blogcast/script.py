@@ -97,7 +97,9 @@ def _element_text(el):
     elif el.name in {"ul", "ol"}:
         res = []
         for li in el.find_all("li"):
-            res.append(_sanitize(li.text))
+            li_text = li.findAll(text=True, recursive=False)
+            li_text = " ".join(li_text) if li_text else li.text
+            res.append(_sanitize(li_text))
             res.append({"silence": 0.5})
         res.append({"silence": 0.5})
         return res
