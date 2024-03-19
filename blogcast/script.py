@@ -7,16 +7,15 @@ import markdown
 import nltk.data
 import requests
 import util
-# from basics import caption_image, summarize_code
+from basics import caption_image, summarize_code
 from bs4 import BeautifulSoup
 
+# def caption_image(url):
+#     return "A dummy image caption"
 
-def caption_image(url):
-    return "A dummy image caption"
 
-
-def summarize_code(code_block):
-    return "A dummy code summary"
+# def summarize_code(code_block):
+#     return "A dummy code summary"
 
 
 try:
