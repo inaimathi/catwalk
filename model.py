@@ -8,6 +8,17 @@ from pytrivialsql import sqlite
 DB = sqlite.Sqlite3("catwalk.db")
 
 __JOB_QUEUE = Queue()
+
+
+def add_job(job_id):
+    __JOB_QUEUE.put(job_id)
+
+
+def add_jobs(job_ids):
+    for jid in job_ids:
+        add_job(jid)
+
+
 JOB_STATUS = [
     "STARTED",
     "RUNNING",
@@ -115,7 +126,7 @@ def refill_queue():
     for job in queuable:
         if job["status"] == "ERRORED":
             update_job(job["id"], status="STARTED")
-        __JOB_QUEUE.put(job["id"])
+        add_job(job["id"])
 
 
 def new_job(job_type, job_input, parent=None):
@@ -131,7 +142,7 @@ def new_job(job_type, job_input, parent=None):
         props["parent_job"] = parent
     job_id = DB.insert("jobs", **props)
     job = job_by_id(job_id)
-    __JOB_QUEUE.put(job["id"])
+    add_job(job["id"])
     return job
 
 
@@ -153,7 +164,7 @@ def update_job(job_id, input=None, output=None, status=None):
 
 def queue_job(job_id):
     assert job_by_id(job_id), f"No such job: {job_id}"
-    __JOB_QUEUE.put(job_id)
+    add_job(job_id)
 
 
 def pull_job():
