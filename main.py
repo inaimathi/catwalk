@@ -42,6 +42,10 @@ class JSONHandler(tornado.web.RequestHandler):
         if self.request.remote_ip in IP_BLACKLIST:
             return self.json({"status": "whoops"}, 403)
 
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "*")
+        self.set_header("Access-Control-Allow-Methods", "*")
+
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
 
