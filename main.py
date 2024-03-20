@@ -113,127 +113,6 @@ class TranscribeHandler(JSONHandler):
             return self.json({"status": "ok", "result": basics.transcribe(path)})
 
 
-class ImageHandler(JSONHandler):
-    async def post(self):
-        prompt = self.get_argument("prompt")
-        if prompt is None:
-            return self.json(
-                {"status": "error", "message": "request must have prompt"}, 400
-            )
-
-        negative_prompt = self.get_argument("negative_prompt", None)
-        k = int(self.get_argument("k", "1"))
-        width = int(self.get_argument("width", "1024"))
-        height = int(self.get_argument("height", "1024"))
-        steps = int(self.get_argument("steps", "50"))
-        seed = self.get_argument("seed", None)
-        if seed is not None:
-            seed = int(seed)
-
-        res = []
-        for _ in range(k):
-            async with GPU:
-                path = images.generate_image(
-                    prompt,
-                    negative_prompt,
-                    width=width,
-                    height=height,
-                    steps=steps,
-                    seed=seed,
-                )
-                res.append(path)
-
-        return self.json(
-            {
-                "status": "ok",
-                "prompt": prompt,
-                "urls": [util.force_static(path) for path in res],
-            }
-        )
-
-
-class TTSHandler(JSONHandler):
-    def get(self):
-        return self.json({"voices": tts.get_voices()})
-
-    async def post(self):
-        text = self.get_argument("text")
-        if text is None:
-            return self.json(
-                {"status": "error", "message": "request must have text"}, 400
-            )
-
-        voice = self.get_argument("voice", "leo")
-        k = int(self.get_argument("k", "1"))
-
-        async with GPU:
-            res = tts.text_to_wavs(text, voice, k)
-
-        return self.json(
-            {
-                "status": "ok",
-                "voice": voice,
-                "text": text,
-                "urls": [util.force_static(r) for r in res],
-            }
-        )
-
-
-class BlogcastHandler(JSONHandler):
-    def get(self):
-        return self.json({"voices": tts.get_voices()})
-
-    async def post(self):
-        url = self.get_argument("url")
-        if url is None:
-            return self.json(
-                {"status": "error", "message": "request must have a target URL"}, 400
-            )
-
-        voice = self.get_argument("voice", "leo")
-
-        print(f"Generating cast of {url}...")
-        async with GPU:
-            script = blogcast.script.script_from(url)
-
-        print(f"   create script of {len(script)} lines...")
-        res = []
-        for el in tqdm.tqdm(script, ascii=True):
-            if isinstance(el, str):
-                async with GPU:
-                    res_tts = tts.text_to_wavs(el, voice, 1)
-                res.append({"text": el, "url": util.force_static(res_tts[0])})
-            else:
-                res.append(el)
-
-        print("   done speaking...")
-        response = {"status": "ok", "voice": voice, "target": url, "result": res}
-        with open(util.fresh_file("blogcast-result-", ".json"), "w") as out:
-            out.write(json.dumps(response))
-        return self.json(response)
-
-
-class ChatHandler(JSONHandler):
-    def post(self):
-        return self.json({"status": "ok", "stub": "TODO"})
-
-
-class TextCompletionHandler(JSONHandler):
-    async def post(self):
-        prompt = self.get_argument("prompt")
-        if prompt is None:
-            return self.json(
-                {"status": "error", "message": "request must have prompt"}, 400
-            )
-
-        max_new_tokens = self.get_argument("max_new_tokens")
-
-        async with GPU:
-            return self.json(
-                {"status": "ok", "result": basics.generate_text(prompt, max_new_tokens)}
-            )
-
-
 class DescribeImageHandler(JSONHandler):
     async def post(self):
         url = self.get_argument("url")
@@ -338,13 +217,8 @@ ROUTES = [
     (r"/", UIHandler),
     (r"/favicon.ico", tornado.web.RedirectHandler, dict(url=r"/static/favicon.ico")),
     (r"/v0/health", HealthHandler),
-    (r"/v0/audio/tts", TTSHandler),
-    (r"/v0/audio/blogcast", BlogcastHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
-    (r"/v0/text/chat", TranscribeHandler),
-    (r"/v0/text/generate", TextCompletionHandler),
     (r"/v0/image/describe", DescribeImageHandler),
-    (r"/v0/image/from_prompt", ImageHandler),
     (r"/v1/job", JobsHandler),
     (r"/v1/job/([0-9]+)", JobHandler),
     (r"/v1/job/updates", worker.SocketServer),
