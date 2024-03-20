@@ -1,3 +1,6 @@
 *~
 static*
 *pyc
+env-catwalk/*
+*db
+*elc

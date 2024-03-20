@@ -3,14 +3,10 @@ import json
 import os
 
 import tornado
-import tqdm
 
 import audio
 import basics
-import blogcast.script
-import images
 import model
-import tts
 import util
 import worker
 
@@ -19,29 +15,9 @@ if not os.path.exists("static"):
 
 GPU = asyncio.Semaphore(1)
 
-if os.path.exists("blacklist.txt"):
-    with open("blacklist.txt", "r") as f:
-        IP_BLACKLIST = set(f.read().splitlines())
-else:
-    IP_BLACKLIST = set([])
-
-
-def _BAN(ip):
-    if ip == "127.0.0.1":
-        return
-    print(f"BANNING {ip}...")
-    with open("blacklist.txt", "a+") as bl:
-        bl.write(f"{ip}\n")
-    IP_BLACKLIST.add(ip)
-
 
 class JSONHandler(tornado.web.RequestHandler):
-    SUPPORTED_METHODS = tornado.web.RequestHandler.SUPPORTED_METHODS + ("CONNECT",)
-
     def prepare(self):
-        if self.request.remote_ip in IP_BLACKLIST:
-            return self.json({"status": "whoops"}, 403)
-
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "*")
         self.set_header("Access-Control-Allow-Methods", "*")
@@ -49,26 +25,10 @@ class JSONHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
 
-    def connect(self):
-        _BAN(self.request.remote_ip)
-        return self.json(
-            {"status": "looks like you're going to the shadow realm, Jimbo"}, 400
-        )
-
     def json(self, data, status=None):
         if status is not None:
             self.set_status(status)
         return self.write(json.dumps(data))
-
-
-class TrapCard(JSONHandler):
-    def prepare(self):
-        if self.request.remote_ip in IP_BLACKLIST:
-            return self.json({"status": "whoops"}, 403)
-        _BAN(self.request.remote_ip)
-        return self.json(
-            {"status": "looks like you're going to the shadow realm, Jimbo"}, 400
-        )
 
 
 class HealthHandler(JSONHandler):
@@ -101,12 +61,10 @@ class TranscribeHandler(JSONHandler):
                 400,
             )
 
-        with open(
-            util.fresh_file(
-                "tmp-transcription-audio-", os.path.splitext(file.filename)
-            ),
-            "wb",
-        ) as out:
+        path = util.fresh_file(
+            "tmp-transcription-audio-", os.path.splitext(file.filename)
+        )
+        with open(path, "wb") as out:
             out.write(file["body"])
 
         async with GPU:
@@ -238,7 +196,6 @@ async def main(port):
     app = tornado.web.Application(
         ROUTES,
         debug=True,
-        default_handler_class=TrapCard,
         static_path=static_path,
         static_url_prefix="/static/",
     )
