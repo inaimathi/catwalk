@@ -7,6 +7,7 @@ import tornado
 import audio
 import basics
 import model
+import tts
 import util
 import worker
 
@@ -47,6 +48,11 @@ class HealthHandler(JSONHandler):
         if val is not None:
             res["value"] = val
         return self.json(res)
+
+
+class InfoHandler(JSONHandler):
+    def get(self):
+        return self.json({"voices": tts.get_voices()})
 
 
 class TranscribeHandler(JSONHandler):
@@ -186,6 +192,7 @@ ROUTES = [
     (r"/v0/health", HealthHandler),
     (r"/v0/audio/transcribe", TranscribeHandler),
     (r"/v0/image/describe", DescribeImageHandler),
+    (r"/v1/info", InfoHandler),
     (r"/v1/job", JobsHandler),
     (r"/v1/job/([0-9]+)", JobHandler),
     (r"/v1/job/updates", worker.SocketServer),
