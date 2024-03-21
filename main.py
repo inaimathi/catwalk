@@ -23,6 +23,7 @@ class JSONHandler(tornado.web.RequestHandler):
             self.json(
                 {"status": "looks like you're going to the shadow realm, Jimbo"}, 400
             )
+            self.finish()
             return self.request.connection.close()
         self.auth_token = auth_token
 
