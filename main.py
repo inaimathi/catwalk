@@ -18,6 +18,14 @@ GPU = asyncio.Semaphore(1)
 
 class JSONHandler(tornado.web.RequestHandler):
     def prepare(self):
+        auth_token = self.request.headers.get("X-Auth-Token", None)
+        if auth_token is None:
+            self.json(
+                {"status": "looks like you're going to the shadow realm, Jimbo"}, 400
+            )
+            return self.request.connection.close()
+        self.auth_token = auth_token
+
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "*")
         self.set_header("Access-Control-Allow-Methods", "*")
