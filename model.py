@@ -1,6 +1,7 @@
 import datetime
 import json
 import queue
+import uuid
 from queue import Queue
 
 from pytrivialsql import sqlite
@@ -31,10 +32,24 @@ JOB_STATUS = [
 
 
 def init():
+    print("Creating `api_keys`...")
+    DB.create(
+        "api_keys",
+        [
+            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+            "key TEXT NOT NULL UNIQUE",
+            "rate_limit INTEGER",
+            "credits TEXT",
+            "created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+            "updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+        ],
+    )
+    print("Creating `jobs`...")
     DB.create(
         "jobs",
         [
             "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+            "api_key_id INTEGER",
             "parent_job INTEGER",
             "job_type TEXT",
             "input TEXT",
@@ -42,8 +57,28 @@ def init():
             "status TEXT NOT NULL DEFAULT 'STARTED'",
             "created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
             "updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+            "FOREIGN KEY(api_key_id) REFERENCES api_keys(id)",
         ],
     )
+
+
+def api_key_by(id=None, key=None):
+    assert id or key, "Needs either `id` or `key`"
+    where_map = {}
+    if id:
+        where_map["id"] = id
+    if key:
+        where_map["key"] = key
+    return DB.select("api_keys", "*", where=where_map)[0]
+
+
+def fresh_key(rate_limit, initial_credits=0, key=None):
+    if key is None:
+        key = str(uuid.uuid4())
+    key_id = DB.insert(
+        "api_keys", key=key, credits=initial_credits, rate_limit=rate_limit
+    )
+    return api_key_by(id=key_id)
 
 
 def _transform_job(raw_job):
@@ -59,6 +94,15 @@ def _transform_job(raw_job):
 def all_jobs():
     return DB.select(
         "jobs", "*", where=("NOT", {"status": "DELETED"}), transform=_transform_job
+    )
+
+
+def jobs_by_api_key(api_key_id):
+    return DB.select(
+        "jobs",
+        "*",
+        where=("NOT", {"status": "DELETED", "api_key_id": api_key_id}),
+        transform=_transform_job,
     )
 
 
