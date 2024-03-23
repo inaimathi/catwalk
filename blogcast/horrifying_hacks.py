@@ -1,6 +1,6 @@
 import re
 
-LETTER_PRONOUNCIATIONS = {
+ENGLISH_LETTER_PRONOUNCIATIONS = {
     "a": "eh",
     "b": "bee",
     "c": "see",
@@ -35,7 +35,7 @@ LETTER_PRONOUNCIATIONS = {
 
 
 def _acronym(acronym):
-    letters = [LETTER_PRONOUNCIATIONS[lt] for lt in acronym.lower()]
+    letters = [ENGLISH_LETTER_PRONOUNCIATIONS[lt] for lt in acronym.lower()]
     return " ".join(letters)
 
 

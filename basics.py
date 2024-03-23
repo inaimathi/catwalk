@@ -94,23 +94,23 @@ def caption_image(url):
     return ""
 
 
-def text_to_image(
-    prompt, negative_prompt=None, steps=50, width=1024, height=1024, seed=None
-):
-    inp = {
-        "prompt": prompt,
-        "negative_prompt": negative_prompt,
-        "num_inference_steps": steps,
-        "width": width,
-        "height": height,
-    }
-    # if seed is not None:
-    #     gen = torch.Generator(util.dev_by(gpu)).manual_seed(seed)
-    #     inp["generator"] = gen
-    images = pipe(**inp).images
-    fname = util.fresh_file("image-", ".png")
-    images[0].save(fname)
-    return fname
+# def text_to_image(
+#     prompt, negative_prompt=None, steps=50, width=1024, height=1024, seed=None
+# ):
+#     inp = {
+#         "prompt": prompt,
+#         "negative_prompt": negative_prompt,
+#         "num_inference_steps": steps,
+#         "width": width,
+#         "height": height,
+#     }
+#     # if seed is not None:
+#     #     gen = torch.Generator(util.dev_by(gpu)).manual_seed(seed)
+#     #     inp["generator"] = gen
+#     images = pipe(**inp).images
+#     fname = util.fresh_file("image-", ".png")
+#     images[0].save(fname)
+#     return fname
 
 
 # print("Loading INSTRUCT...")

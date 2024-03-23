@@ -17,15 +17,33 @@ if not os.path.exists("static"):
 GPU = asyncio.Semaphore(1)
 
 
+class PublicJSONHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "*")
+        self.set_header("Access-Control-Allow-Methods", "*")
+
+    def set_default_headers(self):
+        self.set_header("Content-Type", "application/json")
+
+    def json(self, data, status=None):
+        if status is not None:
+            self.set_status(status)
+        return self.write(json.dumps(data))
+
+
 class JSONHandler(tornado.web.RequestHandler):
     def prepare(self):
         auth_token = self.request.headers.get("X-Auth-Token", None)
-        if auth_token is None:
+        api_key = auth_token and model.api_key_by(key=auth_token)
+        if not api_key:
             self.json(
                 {"status": "looks like you're going to the shadow realm, Jimbo"}, 400
             )
             self.finish()
             return self.request.connection.close()
+
+        self.api_key = api_key
         self.auth_token = auth_token
 
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -41,7 +59,7 @@ class JSONHandler(tornado.web.RequestHandler):
         return self.write(json.dumps(data))
 
 
-class HealthHandler(JSONHandler):
+class HealthHandler(PublicJSONHandler):
     def get(self):
         val = self.get_argument("value", None)
         res = {"status": "ok"}
@@ -50,7 +68,7 @@ class HealthHandler(JSONHandler):
         return self.json(res)
 
 
-class InfoHandler(JSONHandler):
+class InfoHandler(PublicJSONHandler):
     def get(self):
         return self.json({"voices": tts.get_voices()})
 
