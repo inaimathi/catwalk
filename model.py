@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import json
 import queue
 import uuid
@@ -32,7 +33,6 @@ JOB_STATUS = [
 
 
 def init():
-    print("Creating `api_keys`...")
     DB.create(
         "api_keys",
         [
@@ -44,7 +44,6 @@ def init():
             "updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
         ],
     )
-    print("Creating `jobs`...")
     DB.create(
         "jobs",
         [
@@ -60,6 +59,28 @@ def init():
             "FOREIGN KEY(api_key_id) REFERENCES api_keys(id)",
         ],
     )
+    DB.create(
+        "casts",
+        [
+            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+            "api_key_id INTEGER",
+            "job_id INTEGER",
+            "url TEXT",
+            "flag INTEGER",
+            "title TEXT",
+            "audio TEXT",
+            "script TEXT",
+            "state TEXT",
+            "created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+            "updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+            "FOREIGN KEY(api_key_id) REFERENCES api_keys(id)",
+            "FOREIGN KEY(job_id) REFERENCES jobs(id)",
+        ],
+    )
+
+
+def hashed_key(raw_key):
+    return hashlib.sha512(raw_key.encode("utf-8")).hexdigest()
 
 
 def api_key_by(id=None, key=None):
@@ -69,16 +90,19 @@ def api_key_by(id=None, key=None):
         where_map["id"] = id
     if key:
         where_map["key"] = key
-    return DB.select("api_keys", "*", where=where_map)[0]
+    try:
+        return DB.select("api_keys", "*", where=where_map)[0]
+    except IndexError:
+        return None
 
 
 def fresh_key(rate_limit, initial_credits=0, key=None):
     if key is None:
         key = str(uuid.uuid4())
     key_id = DB.insert(
-        "api_keys", key=key, credits=initial_credits, rate_limit=rate_limit
+        "api_keys", key=hashed_key(key), credits=initial_credits, rate_limit=rate_limit
     )
-    return api_key_by(id=key_id)
+    return key, api_key_by(id=key_id)
 
 
 def _transform_job(raw_job):
@@ -228,3 +252,33 @@ def get_job():
         return get_job()
     except queue.Empty:
         return None
+
+
+def job_to_cast(job):
+    # FIXME - create the initial cast from a job
+    #         (possibly also output metadata for already completed jobs?)
+    pass
+
+
+def _transform_cast(raw_cast):
+    raw_cast["flag"] = bool(raw_cast["flag"])
+    raw_cast["script"] = json.loads(raw_cast["script"])
+    raw_cast["state"] = json.loads(raw_cast["state"])
+    return raw_cast
+
+
+def cast_by(cast_id=None, job_id=None):
+    assert cast_id or job_id, "Need either cast_id or job_id"
+    where = {}
+    if cast_id is not None:
+        where["id"] = cast_id
+    if job_id is not None:
+        where["job_id"] = job_id
+    return DB.select("casts", "*", where=where, transform=_transform_cast)[0]
+
+
+def _db_proc_process_jobs_to_casts():
+    cast_jobs = DB.select("jobs", "*", where={"job_type": "blogcast"})
+    for job in cast_jobs:
+        print(f"Converting job {job['id']} ...")
+        job_to_cast(job)
