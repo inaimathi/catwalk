@@ -1,3 +1,4 @@
+import itertools
 import json
 import os
 import re
@@ -84,12 +85,25 @@ def _element_text(el):
         return [_sanitize(el.text), {"silence": 1.0}]
     elif el.name == "blockquote":
         ps = el.find_all("p")
+        silences = itertools.cycle([{"silence": 0.1}])
         if len(ps) < 2:
-            return ["Quote:", _sanitize(el.text), {"silence": 0.5}]
+            sanitized = _sanitize(el.text)
+            sentences = _TOK.tokenize(sanitized)
+            if len(sentences) == 1:
+                return ["Quote:", sanitized, {"silence": 0.5}]
+            elif len(sentences) <= 3:
+                return [
+                    "Quote:",
+                    *_flat(zip(sentences, silences)),
+                    {"silence": 0.4},
+                ]
+        else:
+            sentences = [_sanitize(p.text) for p in ps]
+
         return [
             "There is a longer quote:",
-            *[_sanitize(p.text) for p in ps],
-            {"silence": 0.5},
+            *_flat(zip(sentences, silences)),
+            {"silence": 0.4},
             "Now we resume the text.",
             {"silence": 0.5},
         ]
