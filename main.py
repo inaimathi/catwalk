@@ -73,6 +73,11 @@ class InfoHandler(PublicJSONHandler):
         return self.json({"voices": tts.get_voices()})
 
 
+class UIHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("index.html")
+
+
 class TranscribeHandler(JSONHandler):
     async def post(self):
         if "file" not in self.request.files:
@@ -116,23 +121,15 @@ class DescribeImageHandler(JSONHandler):
             return self.json({"status": "ok", "result": basics.caption_image(url)})
 
 
-class UIHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render("index.html")
-
-
 class JobsHandler(JSONHandler):
     def options(self):
         return self.json(worker.AVAILABLE_JOBS)
 
     def get(self):
-        ids = self.get_argument("ids", None)
-        if ids is not None:
-            ids = json.loads(ids)
-
-        return self.json({"jobs": model.all_jobs()})
+        return self.json({"jobs": model.jobs_by_api_key(self.api_key["id"])})
 
     def post(self):
+        # TODO - check if the rate and credits of the current key
         job_type = self.get_argument("type")
         if job_type is None:
             return self.json(
@@ -153,12 +150,17 @@ class JobsHandler(JSONHandler):
 
 class JobHandler(JSONHandler):
     def get(self, job_id):
-        if self.get_argument("include_children", None):
-            return self.json(model.job_tree_by_id(int(job_id)))
-        return self.json(model.job_by_id(int(job_id)))
+        kids_p = self.get_argument("include_children", None)
+        job = model.job_by_id(int(job_id), include_children=kids_p)
+        if not job["api_key_id"] == self.api_key["id"]:
+            return self.json({"status": "error", "message": "nope"}, 404)
+        return self.json(job)
 
     def delete(self, job_id):
         should_delete = self.get_argument("shred", None)
+        job = model.job_by_id(int(job_id))
+        if not job["api_key_id"] == self.api_key["id"]:
+            return self.json({"status": "error", "message": "nope"}, 404)
         res = model.update_job(
             job_id, status=("CANCELLED" if not should_delete else "DELETED")
         )
@@ -168,6 +170,9 @@ class JobHandler(JSONHandler):
         return self.json({"status": "error"}, 400)
 
     def put(self, job_id):
+        job = model.job_by_id(int(job_id))
+        if not job["api_key_id"] == self.api_key["id"]:
+            return self.json({"status": "error", "message": "nope"}, 404)
         res = model.update_job(job_id, status="STARTED", output={})
         if res is not None:
             worker.SocketServer.send_job_update(res)
@@ -180,6 +185,9 @@ class JobHandler(JSONHandler):
         output = self.get_argument("output", None)
         if output is not None:
             output = json.loads(output)
+        job = model.job_by_id(int(job_id))
+        if not job["api_key_id"] == self.api_key["id"]:
+            return self.json({"status": "error", "message": "nope"}, 404)
         res = model.update_job(int(job_id), output=output, status=status)
 
         if res is not None:

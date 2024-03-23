@@ -134,25 +134,11 @@ def jobs_by_id(ids):
     return DB.select("jobs", "*", where={"id": set(ids)}, transform=_transform_job)
 
 
-def job_tree():
-    node_map = {}
-    res = []
-    job_list = all_jobs()
-    for job in job_list:
-        job["children"] = []
-        if job["parent_job"] is None:
-            res.append(job)
-        else:
-            try:
-                node_map[job["parent_job"]]["children"].append(job)
-            except KeyError:
-                pass
-        node_map[job["id"]] = job
-    return res
-
-
-def job_by_id(job_id):
-    return DB.select("jobs", "*", where={"id": job_id}, transform=_transform_job)[0]
+def job_by_id(job_id, include_children=False):
+    job = DB.select("jobs", "*", where={"id": job_id}, transform=_transform_job)[0]
+    if include_children:
+        job["children"] = jobs_by_parent(job_id)
+    return job
 
 
 def all_children_finished_p(job_id):
@@ -171,12 +157,6 @@ def jobs_by_parent(job_id):
     return DB.select(
         "jobs", "*", where={"parent_job": job_id}, transform=_transform_job
     )
-
-
-def job_tree_by_id(job_id):
-    job = job_by_id(job_id)
-    job["children"] = jobs_by_parent(job_id)
-    return job
 
 
 def refill_queue():
