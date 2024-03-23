@@ -84,7 +84,7 @@ def _element_text(el):
         return [_sanitize(el.text), {"silence": 1.0}]
     elif el.name == "blockquote":
         ps = el.find_all("p")
-        if len(ps) == 1:
+        if len(ps) < 2:
             return ["Quote:", _sanitize(el.text), {"silence": 0.5}]
         return [
             "There is a longer quote:",
