@@ -84,11 +84,11 @@ def hashed_key(raw_key):
 
 
 def api_key_by(id=None, key=None):
-    assert id or key, "Needs either `id` or `key`"
+    assert (id is not None) or (key is not None), "Needs either `id` or `key`"
     where_map = {}
-    if id:
+    if id is not None:
         where_map["id"] = id
-    if key:
+    if key is not None:
         where_map["key"] = key
     try:
         return DB.select("api_keys", "*", where=where_map)[0]

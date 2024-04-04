@@ -1,4 +1,3 @@
-import openai
 import PIL
 import pyannote.audio
 import requests
@@ -6,8 +5,7 @@ import torch
 import torchaudio
 import transformers
 import whisper
-from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoTokenizer, pipeline
 
 import audio
 import util
@@ -94,73 +92,50 @@ def caption_image(url):
     return ""
 
 
-# def text_to_image(
-#     prompt, negative_prompt=None, steps=50, width=1024, height=1024, seed=None
-# ):
-#     inp = {
-#         "prompt": prompt,
-#         "negative_prompt": negative_prompt,
-#         "num_inference_steps": steps,
-#         "width": width,
-#         "height": height,
-#     }
-#     # if seed is not None:
-#     #     gen = torch.Generator(util.dev_by(gpu)).manual_seed(seed)
-#     #     inp["generator"] = gen
-#     images = pipe(**inp).images
-#     fname = util.fresh_file("image-", ".png")
-#     images[0].save(fname)
-#     return fname
+_FALCON7B = None
 
 
-# print("Loading INSTRUCT...")
-# _TEXT_MODEL = "tiiuae/falcon-7b-instruct"
-# _TOKENIZER = AutoTokenizer.from_pretrained(_TEXT_MODEL)
-# _INSTRUCT = transformers.pipeline(
-#     "text-generation",
-#     model=_TEXT_MODEL,
-#     tokenizer=_TOKENIZER,
-#     torch_dtype=torch.bfloat16,
-#     device_map=util.dev_by(name="3050"),
-# )
+def _load_falcon():
+    global _FALCON7B
+    if _FALCON7B is None:
+        print("Loading FALCON7B...")
+        text_model = "tiiuae/falcon-7b-instruct"
+        tokr = AutoTokenizer.from_pretrained(text_model)
+        _FALCON7B = transformers.pipeline(
+            "text-generation",
+            model=text_model,
+            tokenizer=tokr,
+            torch_dtype=torch.bfloat16,
+            device_map=util.dev_by(name="4090"),
+        )
 
 
-def generate_text(prompt, max_new_tokens=50):
-    return None
-    # return _INSTRUCT(
-    #     prompt,
-    #     do_sample=True,
-    #     top_k=10,
-    #     num_return_sequences=1,
-    #     eos_token_id=_TOKENIZER.eos_token_id,
-    #     max_new_tokens=max_new_tokens,
-    # )
+def _prompt_text(prompt, max_new_tokens, pipe):
+    res = pipe(
+        prompt,
+        do_sample=True,
+        top_k=10,
+        num_return_sequences=1,
+        max_new_tokens=max_new_tokens,
+    )
+    return res[0]["generated_text"][len(prompt) :].strip()
+
+
+def falcon_complete(prompt, max_new_tokens=50):
+    _load_falcon()
+    return _prompt_text(prompt, max_new_tokens, _FALCON7B)
+
+
+CODE_IDENTIFY = pipeline(
+    "text-classification", model="huggingface/CodeBERTa-language-id"
+)
 
 
 def summarize_code(code_block):
-    client = openai.OpenAI()
-    res = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an omni-competent programmer and brilliant documentation writer. You're usually the stickler that insists on better docstrings being written when you're on a team. You know all programming languages, and have an impeccable skill for explaining code written in them to others. You will be asked to summarize a code block. Assume that this is a description that will have to be read out loud to someone familiar with the language it is written in, but not what the specific code itself does. You should tell the listener what language the code is written in, and what it does at a high level. Keep it short; on the order of two to five sentences.",
-            },
-            {
-                "role": "user",
-                "content": f"Please summarize the following code block: {code_block}",
-            },
-        ],
+    kfn = lambda el: el["score"]
+    lang = sorted(CODE_IDENTIFY(code_block), key=kfn, reverse=True)[0]["label"]
+    summary = falcon_complete(
+        f"Here's some code: \n```{code_block}```\n\n To summarize in a plain English sentence, it does: ",
+        250,
     )
-    return res.choices[0].message.content
-
-
-# def summarize_code(code_block, max_new_tokens=200):
-#     res = _INSTRUCT(
-#         f"You are an omni-competent programmer and brilliant documentation writer. You're usually the stickler that insists on better docstrings being written when you're on a team. You know all programming languages, and have an impeccable skill for explaining code written in them to others. When asked to write a five-to-eight-sentence summarizing documentation, including a basic note on which language it's written in, on the code {code_block}, you would write:", do_sample=True,
-#         top_k=10,
-#         num_return_sequences=1,
-#         eos_token_id=_TOKENIZER.eos_token_id,
-#         max_new_tokens=max_new_tokens
-#     )
-#     return res[0]["generated_text"]
+    return f"Written in {lang}. {summary}"
