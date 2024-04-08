@@ -150,8 +150,7 @@ class JobsHandler(JSONHandler):
 
 class JobHandler(JSONHandler):
     def get(self, job_id):
-        kids_p = self.get_argument("include_children", None)
-        job = model.job_by_id(int(job_id), include_children=kids_p)
+        job = model.job_by_id(int(job_id), include_children=True)
         if not job["api_key_id"] == self.api_key["id"]:
             return self.json({"status": "error", "message": "nope"}, 404)
         return self.json(job)
